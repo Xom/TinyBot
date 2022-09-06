@@ -60,7 +60,7 @@ class InferenceManager {
   InferenceTicket request(float* input_local, float* input_global);
 
  private:
-  void infer(std::shared_ptr<InferenceInput> input);
+  void infer(std::shared_ptr<InferenceInput> input, std::shared_ptr<InferenceOutput> result, InferenceContext* context);
 
   int binding_indices[kNumTensors]{};
   Pool<InferenceContext> context_pool{};

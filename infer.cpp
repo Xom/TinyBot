@@ -77,16 +77,14 @@ InferenceTicket InferenceManager::request(float* input_local, float* input_globa
   InferenceTicket result(current_input->future, current_input->cursor);
   ++current_input->cursor;
   if (current_input->cursor == kBatchSize) {
-    std::thread(&InferenceManager::infer, this, std::move(current_input)).detach();
+    std::thread(&InferenceManager::infer, this, std::move(current_input), std::make_shared<InferenceOutput>(), context_pool.pop()).detach();
     current_input = std::make_shared<InferenceInput>();
     current_input->future = current_input->promise.get_future().share();
   }
   return result;
 }
 
-void InferenceManager::infer(std::shared_ptr<InferenceInput> input) {
-  InferenceContext* context = context_pool.pop();
-
+void InferenceManager::infer(std::shared_ptr<InferenceInput> input, std::shared_ptr<InferenceOutput> result, InferenceContext* context) {
   // Transfers from host memory to device memory are asynchronous with respect to the host
   CUDA_ERR(
       "infer",
@@ -104,8 +102,6 @@ void InferenceManager::infer(std::shared_ptr<InferenceInput> input) {
           cudaMemcpyHostToDevice));
 
   context->exec->enqueueV2(context->buffers, cudaStreamPerThread, nullptr);
-
-  std::shared_ptr<InferenceOutput> result = std::make_shared<InferenceOutput>();
 
   CUDA_ERR(
       "infer",
