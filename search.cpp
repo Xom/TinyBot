@@ -213,12 +213,15 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
   }
 
   while (true) {
+//    bool first_flag = true;
     for (Game& game : games) {
+//      const bool is_first = first_flag;
+//      first_flag = false;
+
       const int offset = game.ticket.cursor * kTensorLengths[kOutputPolicy];
       float* output_policy = game.ticket.future.get()->output_policy;
 
       if (game.sim) {
-        const bool drawing = game.sim->board.placements_until_draw == 0;
         for (const int move : game.sim->moves) {
           game.sim->priors.push_back(expf(output_policy[offset + move]));
         }
@@ -317,9 +320,6 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
               continue;
             }
 
-//            if (rng(1000) == 0) {
-//              leaf->board.display();
-//            }
             leaf->board.calculateScore();
             const double ev = static_cast<double>(leaf->board.score[8]) / kScoreDenom;
             for (auto& node : stack) {
@@ -331,6 +331,11 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             stack.clear();
           } while (game.sim->board.is_player_turn);
 
+//          if (is_first) {
+//            std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
+//            game.sim->board.display();
+//            std::cout << "\n";
+//          }
           game.sim->board.calculateScore();
           const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
           for (auto& node : game.stack) {
@@ -343,10 +348,11 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           game.stack.clear();
 
         } else {
+          const bool drawing = game.sim->board.placements_until_draw == 0;
           const int n = game.sim->priors.size();
           int random_i = 0;
-          double r = static_cast<double>(rng()) / kPcg32MaxDouble;
-          for (int i = 1; i < n; ++i) {
+          double r = static_cast<double>((drawing ? game.sim_rng_draw : game.sim_rng_place)()) / kPcg32MaxDouble;
+          for (int i = 0; i < n; ++i) {
             if (r < game.sim->priors[i]) {
               random_i = i;
               break;
@@ -356,12 +362,15 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           game.sim->priors.clear();
           if (drawing) {
             game.sim->board.doDraw(game.sim->moves[random_i]);
+            if (game.sim->moves[random_i] == kMovePass) {
+              game.sim_rng_draw = pcg32(game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + 651 + game.sim->board.drawings_completed);
+            }
           } else {
             game.sim->board.doPlace(game.sim->moves[random_i] % 81, game.sim->moves[random_i] / 81);
           }
 
           do {
-            if (game.sim->board.drawings_completed == 3) {
+            if (game.sim->board.drawings_completed == 3) {  // vestigial branch
               game.sim->board.calculateScore();
               const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
               for (auto& node : game.stack) {
@@ -379,6 +388,9 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
               game.sim->populateDraw();
               if (game.sim->moves.size() == 1) {
                 game.sim->board.doDraw(game.sim->moves[0]);  // then repeat
+                if (game.sim->moves[0] == kMovePass) {
+                  game.sim_rng_draw = pcg32(game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + 651 + game.sim->board.drawings_completed);
+                }
               }
             } else {
               game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
@@ -544,7 +556,10 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           continue;
         }
 
-        game.sim_deck = PcgDeck{pcg32(game.seed, game.sim_stream + game.stack.front()->visits)};
+        const auto sim_stream_offset = (game.sim_stream + game.stack.front()->visits) * 1024;
+        game.sim_deck = PcgDeck{pcg32(game.seed, sim_stream_offset + 649)};
+        game.sim_rng_place = pcg32(game.seed, sim_stream_offset + 650);
+        game.sim_rng_draw = pcg32(game.seed, sim_stream_offset + 651);
         game.sim = std::make_shared<Node>(leaf->board);
         game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
 

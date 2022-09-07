@@ -64,6 +64,8 @@ class Game {
   unsigned long seed{};
   unsigned long sim_stream{0};
   PcgDeck sim_deck{pcg32()};  // dummy initial value
+  pcg32 sim_rng_place{};
+  pcg32 sim_rng_draw{};
 };
 
 class SearchManager {
