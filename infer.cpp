@@ -68,11 +68,7 @@ InferenceTicket InferenceManager::request(float* input_local, float* input_globa
   std::unique_lock<std::mutex> lock(request_mutex);
   float* dest_local = &current_input->input_local[kTensorLengths[kInputLocal] * current_input->cursor];
   float* dest_global = &current_input->input_global[kTensorLengths[kInputGlobal] * current_input->cursor];
-  for (int c = 0; c < 21; ++c) {
-    for (int z = 0; z < 81; ++z) {
-      dest_local[c * 81 + z] = input_local[z * 21 + c];
-    }
-  }
+  memcpy(dest_local, input_local, kTensorSizes[kInputLocal]);
   memcpy(dest_global, input_global, kTensorSizes[kInputGlobal]);
   InferenceTicket result(current_input->future, current_input->cursor);
   ++current_input->cursor;

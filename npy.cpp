@@ -58,14 +58,14 @@ int npy(const bool legacy_data) {
       std::cerr << problems << " / " << total << "\n";
     }
     ++total;
-    std::vector<std::string> tokens = tinybot::split(line);
+    std::vector<std::string> tokens = split(line);
     if (tokens.size() != 64 && tokens.size() != 65 && !legacy_data) {
       ++problems;
       std::cerr << line << "\n";
       continue;
     }
-    tinybot::FixedDeck deck(tokens);
-    tinybot::Board board{};
+    FixedDeck deck(tokens);
+    Board board{};
     bool found_problem = false;
     bool illegal_lake = false;
     int score[9]{};
@@ -78,37 +78,37 @@ int npy(const bool legacy_data) {
         if (i % 2 == 0) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = tinybot::parseX(tokens[i][1]);
-          const int y = tinybot::parseY(tokens[i][2]);
-          const int t = tinybot::parseTile(tokens[i][0]);
+          const int x = parseX(tokens[i][1]);
+          const int y = parseY(tokens[i][2]);
+          const int t = parseTile(tokens[i][0]);
           board.doPlace(y * 9 + x, t);
           insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
         }
       } else if (i == 18) {
         if (!legacy_data) {
-          const int first_x = tinybot::parseX(tokens[i][0]);
-          const int first_y = tinybot::parseY(tokens[i][1]);
+          const int first_x = parseX(tokens[i][0]);
+          const int first_y = parseY(tokens[i][1]);
           const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z * 21 + 8] < 0.5f) {
+          if (board.input_local[first_z + 648] < 0.5f) {
             found_problem = true;
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(first_z);
           insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
         }
         std::vector<int> zz;
         for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(tinybot::parseY(tokens[i][j + 1]) * 9 + tinybot::parseX(tokens[i][j]));
+          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
         }
         while (!zz.empty()) {
-          float best = board.input_local[zz[0] * 21 + 8];
+          float best = board.input_local[zz[0] + 648];
           int best_j = 0;
           for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] * 21 + 8];
+            const float p = board.input_local[zz[j] + 648];
             if (p > best) {
               best = p;
               best_j = j;
@@ -119,7 +119,7 @@ int npy(const bool legacy_data) {
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(zz[best_j]);
           insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
           zz[best_j] = zz.back();
@@ -129,30 +129,30 @@ int npy(const bool legacy_data) {
           break;
         }
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
-        board.doDraw(tinybot::kMovePass);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+        board.doDraw(kMovePass);
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 37) {
         if (i % 2 == 1) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = tinybot::parseX(tokens[i][1]);
-          const int y = tinybot::parseY(tokens[i][2]);
-          const int t = tinybot::parseTile(tokens[i][0]);
+          const int x = parseX(tokens[i][1]);
+          const int y = parseY(tokens[i][2]);
+          const int t = parseTile(tokens[i][0]);
           board.doPlace(y * 9 + x, t);
           insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
         }
       } else if (i == 37) {
         if (!legacy_data) {
-          const int first_x = tinybot::parseX(tokens[i][0]);
-          const int first_y = tinybot::parseY(tokens[i][1]);
+          const int first_x = parseX(tokens[i][0]);
+          const int first_y = parseY(tokens[i][1]);
           const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z * 21 + 8] < 0.5f) {
+          if (board.input_local[first_z + 648] < 0.5f) {
             found_problem = true;
             if (board.land[first_z] != 0 && (first_x == 0 || first_x == 8 || first_y == 0 || first_y == 8)) {
               illegal_lake = true;
@@ -160,19 +160,19 @@ int npy(const bool legacy_data) {
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(first_z);
           insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
         }
         std::vector<int> zz;
         for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(tinybot::parseY(tokens[i][j + 1]) * 9 + tinybot::parseX(tokens[i][j]));
+          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
         }
         while (!zz.empty()) {
-          float best = board.input_local[zz[0] * 21 + 8];
+          float best = board.input_local[zz[0] + 648];
           int best_j = 0;
           for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] * 21 + 8];
+            const float p = board.input_local[zz[j] + 648];
             if (p > best) {
               best = p;
               best_j = j;
@@ -183,7 +183,7 @@ int npy(const bool legacy_data) {
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(zz[best_j]);
           insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
           zz[best_j] = zz.back();
@@ -193,30 +193,30 @@ int npy(const bool legacy_data) {
           break;
         }
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
-        board.doDraw(tinybot::kMovePass);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+        board.doDraw(kMovePass);
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 54) {
         if (i % 2 == 0) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = tinybot::parseX(tokens[i][1]);
-          const int y = tinybot::parseY(tokens[i][2]);
-          const int t = tinybot::parseTile(tokens[i][0]);
+          const int x = parseX(tokens[i][1]);
+          const int y = parseY(tokens[i][2]);
+          const int t = parseTile(tokens[i][0]);
           board.doPlace(y * 9 + x, t);
           insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
         }
       } else if (i == 54) {
         if (!legacy_data) {
-          const int first_x = tinybot::parseX(tokens[i][0]);
-          const int first_y = tinybot::parseY(tokens[i][1]);
+          const int first_x = parseX(tokens[i][0]);
+          const int first_y = parseY(tokens[i][1]);
           const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z * 21 + 8] < 0.5f) {
+          if (board.input_local[first_z + 648] < 0.5f) {
             found_problem = true;
             if (board.land[first_z] != 0 && (first_x == 0 || first_x == 8 || first_y == 0 || first_y == 8)) {
               illegal_lake = true;
@@ -224,19 +224,19 @@ int npy(const bool legacy_data) {
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(first_z);
           insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
         }
         std::vector<int> zz;
         for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(tinybot::parseY(tokens[i][j + 1]) * 9 + tinybot::parseX(tokens[i][j]));
+          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
         }
         while (!zz.empty()) {
-          float best = board.input_local[zz[0] * 21 + 8];
+          float best = board.input_local[zz[0] + 648];
           int best_j = 0;
           for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] * 21 + 8];
+            const float p = board.input_local[zz[j] + 648];
             if (p > best) {
               best = p;
               best_j = j;
@@ -247,7 +247,7 @@ int npy(const bool legacy_data) {
             break;
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
           board.doDraw(zz[best_j]);
           insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
           zz[best_j] = zz.back();
@@ -257,10 +257,10 @@ int npy(const bool legacy_data) {
           break;
         }
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
-        board.doDraw(tinybot::kMovePass);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+        board.doDraw(kMovePass);
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + tinybot::kTensorLengths[tinybot::kInputGlobal]);
+        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else {
@@ -271,7 +271,7 @@ int npy(const bool legacy_data) {
         score[i - 55] = atoi(tokens[i].c_str());
       }
     }
-    int rows = input_global_tmp.size() / tinybot::kTensorLengths[tinybot::kInputGlobal];
+    int rows = input_global_tmp.size() / kTensorLengths[kInputGlobal];
     for (int i = 0; i < rows; ++i) {
       insert_output_land(output_land_tmp, board.input_local, symmetry_land);
     }
@@ -282,58 +282,53 @@ int npy(const bool legacy_data) {
       } else {
         std::cerr << line << "\n";
         board.display();
-        //        for (int k = 0; k < 81; ++k) {
-        //          std::cerr << board.input_local[k * 21 + 8] << ", ";
-        //          if (k % 9 == 8)
-        //            std::cerr << "\n";
-        //        }
         switch (board.draw_mode) {
-          case tinybot::kDrawModeUL:
+          case kDrawModeUL:
             std::cerr << "kDrawModeUL\n";
             break;
-          case tinybot::kDrawModeUR:
+          case kDrawModeUR:
             std::cerr << "kDrawModeUR\n";
             break;
-          case tinybot::kDrawModeLL:
+          case kDrawModeLL:
             std::cerr << "kDrawModeLL\n";
             break;
-          case tinybot::kDrawModeLR:
+          case kDrawModeLR:
             std::cerr << "kDrawModeLR\n";
             break;
-          case tinybot::kDrawModeW:
+          case kDrawModeW:
             std::cerr << "kDrawModeW\n";
             break;
-          case tinybot::kDrawModeE:
+          case kDrawModeE:
             std::cerr << "kDrawModeE\n";
             break;
-          case tinybot::kDrawModeN:
+          case kDrawModeN:
             std::cerr << "kDrawModeN\n";
             break;
-          case tinybot::kDrawModeS:
+          case kDrawModeS:
             std::cerr << "kDrawModeS\n";
             break;
-          case tinybot::kDrawModeWN:
+          case kDrawModeWN:
             std::cerr << "kDrawModeWN\n";
             break;
-          case tinybot::kDrawModeWS:
+          case kDrawModeWS:
             std::cerr << "kDrawModeWS\n";
             break;
-          case tinybot::kDrawModeEN:
+          case kDrawModeEN:
             std::cerr << "kDrawModeEN\n";
             break;
-          case tinybot::kDrawModeES:
+          case kDrawModeES:
             std::cerr << "kDrawModeES\n";
             break;
-          case tinybot::kDrawModeNW:
+          case kDrawModeNW:
             std::cerr << "kDrawModeNW\n";
             break;
-          case tinybot::kDrawModeNE:
+          case kDrawModeNE:
             std::cerr << "kDrawModeNE\n";
             break;
-          case tinybot::kDrawModeSW:
+          case kDrawModeSW:
             std::cerr << "kDrawModeSW\n";
             break;
-          case tinybot::kDrawModeSE:
+          case kDrawModeSE:
             std::cerr << "kDrawModeSE\n";
             break;
           default:
@@ -355,13 +350,13 @@ int npy(const bool legacy_data) {
       }
       if (tokens.size() == 65) {
         const int skip = atoi(tokens[64].c_str());
-        input_local.insert(input_local.end(), input_local_tmp.begin() + skip * tinybot::kTensorLengths[tinybot::kInputLocal], input_local_tmp.end());
-        input_global.insert(input_global.end(), input_global_tmp.begin() + skip * tinybot::kTensorLengths[tinybot::kInputGlobal], input_global_tmp.end());
-        output_policy.insert(output_policy.end(), output_policy_tmp.begin() + skip * tinybot::kTensorLengths[tinybot::kOutputPolicy], output_policy_tmp.end());
-        output_land.insert(output_land.end(), output_land_tmp.begin() + skip * 81, output_land_tmp.end());
+        input_local.insert(input_local.end(), input_local_tmp.begin() + skip * kTensorLengths[kInputLocal], input_local_tmp.end());
+        input_global.insert(input_global.end(), input_global_tmp.begin() + skip * kTensorLengths[kInputGlobal], input_global_tmp.end());
+        output_policy.insert(output_policy.end(), output_policy_tmp.begin() + skip * kTensorLengths[kOutputPolicy], output_policy_tmp.end());
+        output_land.insert(output_land.end(), output_land_tmp.begin() + skip * kTensorLengths[kOutputLand], output_land_tmp.end());
         float float_score[8];
         for (int i = 0; i < 8; ++i) {
-          float_score[i] = static_cast<float>(score[i]) / tinybot::kScoreDenom;
+          float_score[i] = static_cast<float>(score[i]) / kScoreDenom;
         }
         rows -= skip;
         for (int i = 0; i < rows; ++i) {
@@ -374,7 +369,7 @@ int npy(const bool legacy_data) {
         output_land.insert(output_land.end(), output_land_tmp.begin(), output_land_tmp.end());
         float float_score[8];
         for (int i = 0; i < 8; ++i) {
-          float_score[i] = static_cast<float>(score[i]) / tinybot::kScoreDenom;
+          float_score[i] = static_cast<float>(score[i]) / kScoreDenom;
         }
         for (int i = 0; i < rows; ++i) {
           output_value.insert(output_value.end(), float_score, float_score + 8);
@@ -385,11 +380,11 @@ int npy(const bool legacy_data) {
   std::cerr << problems << " / " << total << "\n";
   std::cerr << symmetry_input << ' ' << symmetry_output << ' ' << symmetry_land << "\n";
   std::cerr << input_local.size() << ' ' << input_global.size() << ' ' << output_policy.size() << ' ' << output_value.size() << ' ' << output_land.size() << "\n";
-  cnpy::npy_save("input_local.npy", &input_local[0], {input_local.size() / tinybot::kTensorLengths[tinybot::kInputLocal], 21, 9, 9}, "w");
-  cnpy::npy_save("input_global.npy", &input_global[0], {input_global.size() / tinybot::kTensorLengths[tinybot::kInputGlobal], tinybot::kTensorLengths[tinybot::kInputGlobal]}, "w");
-  cnpy::npy_save("output_policy.npy", &output_policy[0], {output_policy.size() / tinybot::kTensorLengths[tinybot::kOutputPolicy], tinybot::kTensorLengths[tinybot::kOutputPolicy]}, "w");
-  cnpy::npy_save("output_value.npy", &output_value[0], {output_value.size() / tinybot::kTensorLengths[tinybot::kOutputValue], tinybot::kTensorLengths[tinybot::kOutputValue]}, "w");
-  cnpy::npy_save("output_land.npy", &output_land[0], {output_land.size() / 81, 1, 9, 9}, "w");
+  cnpy::npy_save("input_local.npy", &input_local[0], {input_local.size() / kTensorLengths[kInputLocal], 21, 9, 9}, "w");
+  cnpy::npy_save("input_global.npy", &input_global[0], {input_global.size() / kTensorLengths[kInputGlobal], kTensorLengths[kInputGlobal]}, "w");
+  cnpy::npy_save("output_policy.npy", &output_policy[0], {output_policy.size() / kTensorLengths[kOutputPolicy], kTensorLengths[kOutputPolicy]}, "w");
+  cnpy::npy_save("output_value.npy", &output_value[0], {output_value.size() / kTensorLengths[kOutputValue], kTensorLengths[kOutputValue]}, "w");
+  cnpy::npy_save("output_land.npy", &output_land[0], {output_land.size() / kTensorLengths[kOutputLand], 1, 9, 9}, "w");
   return problems;
 }
 
@@ -399,7 +394,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[((8 - yy) * 9 + 8 - xx) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + 8 - xx]);
           }
         }
       }
@@ -408,7 +403,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[(xx * 9 + 8 - yy) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + xx * 9 + 8 - yy]);
           }
         }
       }
@@ -417,7 +412,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[((8 - xx) * 9 + yy) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + yy]);
           }
         }
       }
@@ -426,7 +421,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[(xx * 9 + yy) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + xx * 9 + yy]);
           }
         }
       }
@@ -435,7 +430,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[((8 - xx) * 9 + 8 - yy) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + 8 - yy]);
           }
         }
       }
@@ -444,7 +439,7 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[((8 - yy) * 9 + xx) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + xx]);
           }
         }
       }
@@ -453,17 +448,13 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
       for (int c = 0; c < 21; ++c) {
         for (int yy = 0; yy < 9; ++yy) {
           for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[(yy * 9 + 8 - xx) * 21 + c]);
+            input_local_tmp.push_back(input_local[c * 81 + yy * 9 + 8 - xx]);
           }
         }
       }
       break;
     default:
-      for (int c = 0; c < 21; ++c) {
-        for (int z = 0; z < 81; ++z) {
-          input_local_tmp.push_back(input_local[z * 21 + c]);
-        }
-      }
+      input_local_tmp.insert(input_local_tmp.end(), input_local, input_local + kTensorLengths[kInputLocal]);
       break;
   }
   ++symmetry;
@@ -506,15 +497,15 @@ void insert_output_policy(std::vector<float>& output_policy_tmp, const int x, co
       break;
   }
   const auto offset = output_policy_tmp.size();
-  output_policy_tmp.insert(output_policy_tmp.end(), tinybot::kTensorLengths[tinybot::kOutputPolicy], 0.0f);
+  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
   output_policy_tmp[offset + t * 81 + yy * 9 + xx] = 1.0f;
   ++symmetry;
 }
 
 void insert_output_policy_pass(std::vector<float>& output_policy_tmp, int& symmetry) {
   const auto offset = output_policy_tmp.size();
-  output_policy_tmp.insert(output_policy_tmp.end(), tinybot::kTensorLengths[tinybot::kOutputPolicy], 0.0f);
-  output_policy_tmp[offset + tinybot::kMovePass * 8] = 1.0f;
+  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
+  output_policy_tmp[offset + kMovePass] = 1.0f;
   ++symmetry;
 }
 
@@ -523,56 +514,54 @@ void insert_output_land(std::vector<float>& output_land_tmp, float* input_local,
     case 1:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[((8 - yy) * 9 + 8 - xx) * 21]);
+          output_land_tmp.push_back(input_local[(8 - yy) * 9 + 8 - xx]);
         }
       }
       break;
     case 2:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[(xx * 9 + 8 - yy) * 21]);
+          output_land_tmp.push_back(input_local[xx * 9 + 8 - yy]);
         }
       }
       break;
     case 3:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[((8 - xx) * 9 + yy) * 21]);
+          output_land_tmp.push_back(input_local[(8 - xx) * 9 + yy]);
         }
       }
       break;
     case 4:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[(xx * 9 + yy) * 21]);
+          output_land_tmp.push_back(input_local[xx * 9 + yy]);
         }
       }
       break;
     case 5:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[((8 - xx) * 9 + 8 - yy) * 21]);
+          output_land_tmp.push_back(input_local[(8 - xx) * 9 + 8 - yy]);
         }
       }
       break;
     case 6:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[((8 - yy) * 9 + xx) * 21]);
+          output_land_tmp.push_back(input_local[(8 - yy) * 9 + xx]);
         }
       }
       break;
     case 7:
       for (int yy = 0; yy < 9; ++yy) {
         for (int xx = 0; xx < 9; ++xx) {
-          output_land_tmp.push_back(input_local[(yy * 9 + 8 - xx) * 21]);
+          output_land_tmp.push_back(input_local[yy * 9 + 8 - xx]);
         }
       }
       break;
     default:
-      for (int z = 0; z < 81; ++z) {
-        output_land_tmp.push_back(input_local[z * 21]);
-      }
+      output_land_tmp.insert(output_land_tmp.end(), input_local, input_local + kTensorLengths[kOutputLand]);
       break;
   }
   ++symmetry;

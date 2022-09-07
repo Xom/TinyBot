@@ -11,7 +11,7 @@ void Node::populateDraw() {
     moves.push_back(kMovePass);
   }
   for (int z = 0; z < 81; ++z) {
-    if (board.input_local[z * 21 + 8] > 0.5f) {
+    if (board.input_local[z + 648] > 0.5f) {
       moves.push_back(z);
     }
   }
@@ -111,13 +111,13 @@ void Game::doPlace(const int z, const int t) {
 }
 
 void Game::doPlace(const int move) {
-  doPlace(move / 21, move % 21 - 8);
+  doPlace(move % 81, move / 81);
 }
 
 void Game::doPlace(std::shared_ptr<Node> child) {
   root = std::move(child);
-  const int z = root->move / 21;
-  const int t = root->move % 21 - 8;
+  const int z = root->move % 81;
+  const int t = root->move / 81;
   record.push_back(kTileChars[t]);
   record.push_back(kZoneChars[z % 9 + 9]);
   record.push_back(kZoneChars[z / 9]);
@@ -219,14 +219,8 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
 
       if (game.sim) {
         const bool drawing = game.sim->board.placements_until_draw == 0;
-        if (drawing) {
-          for (const int move : game.sim->moves) {
-            game.sim->priors.push_back(expf(output_policy[offset + (move == kMovePass ? 648 : move)]));
-          }
-        } else {
-          for (const int move : game.sim->moves) {
-            game.sim->priors.push_back(expf(output_policy[offset + (move % 21 - 8) * 81 + (move / 21)]));
-          }
+        for (const int move : game.sim->moves) {
+          game.sim->priors.push_back(expf(output_policy[offset + move]));
         }
         game.sim->normalizePriorsAndSortMoves(rng, true);
 
@@ -363,7 +357,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           if (drawing) {
             game.sim->board.doDraw(game.sim->moves[random_i]);
           } else {
-            game.sim->board.doPlace(game.sim->moves[random_i] / 21, game.sim->moves[random_i] % 21 - 8);
+            game.sim->board.doPlace(game.sim->moves[random_i] % 81, game.sim->moves[random_i] / 81);
           }
 
           do {
@@ -389,7 +383,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             } else {
               game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
               if (game.sim->moves.size() == 1) {
-                game.sim->board.doPlace(game.sim->moves[0] / 21, game.sim->moves[0] % 21 - 8);  // then repeat
+                game.sim->board.doPlace(game.sim->moves[0] % 81, game.sim->moves[0] / 81);  // then repeat
               }
             }
           } while (game.sim->moves.size() == 1);
@@ -413,14 +407,8 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
         }
       } else {
         std::shared_ptr<Node> leaf = game.stack.empty() ? game.root : game.stack.back();
-        if (leaf->board.placements_until_draw == 0) {
-          for (const int move : leaf->moves) {
-            leaf->priors.push_back(expf(output_policy[offset + (move == kMovePass ? 648 : move)]));
-          }
-        } else {
-          for (const int move : leaf->moves) {
-            leaf->priors.push_back(expf(output_policy[offset + (move % 21 - 8) * 81 + (move / 21)]));
-          }
+        for (const int move : leaf->moves) {
+          leaf->priors.push_back(expf(output_policy[offset + move]));
         }
         leaf->normalizePriorsAndSortMoves(rng, !game.stack.empty());
       }
@@ -473,7 +461,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             if (game.root->board.placements_until_draw == 0) {
               child->board.doDraw(child->move);
             } else {
-              child->board.doPlace(child->move / 21, child->move % 21 - 8);
+              child->board.doPlace(child->move % 81, child->move / 81);
             }
             if (child->board.is_player_turn) {
               child->populateDraw();  // child is not placement, because parent is player turn therefore not offer
@@ -529,7 +517,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             if (leaf->board.placements_until_draw == 0) {
               child->board.doDraw(child->move);
             } else {
-              child->board.doPlace(child->move / 21, child->move % 21 - 8);
+              child->board.doPlace(child->move % 81, child->move / 81);
             }
             if (child->board.is_player_turn) {
               child->populateDraw();  // child is not placement, because parent is player turn therefore not offer
@@ -564,7 +552,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           if (game.sim->board.placements_until_draw == 0) {
             game.sim->board.doDraw(game.sim->moves[0]);
           } else {
-            game.sim->board.doPlace(game.sim->moves[0] / 21, game.sim->moves[0] % 21 - 8);
+            game.sim->board.doPlace(game.sim->moves[0] % 81, game.sim->moves[0] / 81);
           }
           game.sim->moves.clear();
           if (game.sim->board.is_player_turn) {

@@ -39,7 +39,7 @@ void Board::displayInputs() {
     std::cout << i << ":\n";
     for (int y = 0; y < 9; ++y) {
       for (int x = 0; x < 9; ++x) {
-        std::cout << input_local[(y * 9 + x) * 21 + i] << ' ';
+        std::cout << input_local[i * 81 + y * 9 + x] << ' ';
       }
       std::cout << "\n";
     }
@@ -50,13 +50,13 @@ void Board::doOffer(IDeck& d, std::vector<int>* moves) {
   d.offer(this);
   for (int i = 0; i < 2; ++i) {
     input_global[offer_tile[i]] = static_cast<float>(deck[offer_tile[i]]) / kDeckDenom[offer_tile[i]];
-    const int zone_channel = offer_zone[i] / 9 + 16;
+    const int zone_channel_offset = (offer_zone[i] / 9 + 16) * 81;
     for (const int z : kZoneZ[offer_zone[i]]) {
-      input_local[z * 21 + zone_channel] = static_cast<float>(zone[offer_zone[i]]) / 2.0f;
+      input_local[zone_channel_offset + z] = static_cast<float>(zone[offer_zone[i]]) / 2.0f;
       if (tile[z] == kBlank) {
-        const int move = z * 21 + 8 + offer_tile[i];
-        if (input_local[move] != 1.0f) {
-          input_local[move] = 1.0f;
+        const int move = offer_tile[i] * 81 + z;
+        if (input_local[move + 648] != 1.0f) {
+          input_local[move + 648] = 1.0f;
           if (moves) {
             moves->push_back(move);
           }
@@ -75,7 +75,7 @@ void Board::initDraw() {
   switch (drawings_completed) {
     case 0:
       for (int z = 0; z < 81; ++z) {
-        input_local[z * 21 + 8] = kDrawPriority[0][z];
+        input_local[z + 648] = kDrawPriority[0][z];
       }
       break;
     case 1:
@@ -96,9 +96,9 @@ void Board::initDrawLimitedIndirect() {
       const int y = z / 9;
       const float p = kDrawPriority[0][z];
       if (canDirectWater(z, x, y)) {
-        input_local[z * 21 + 8] = p;
+        input_local[z + 648] = p;
       } else {
-        input_local[z * 21 + 8] = kDrawForbidden;
+        input_local[z + 648] = kDrawForbidden;
         if (p > max_priority) {
           max_priority = p;
           best.clear();
@@ -109,22 +109,22 @@ void Board::initDrawLimitedIndirect() {
       }
     } else {
       if (x == 0 || x == 8) {
-        input_local[z * 21 + 8] = kDrawForbidden;
+        input_local[z + 648] = kDrawForbidden;
         initDrawForbiddingIndirect(z);
         return;
       }
       const int y = z / 9;
       if (y == 0 || y == 8) {
-        input_local[z * 21 + 8] = kDrawForbidden;
+        input_local[z + 648] = kDrawForbidden;
         initDrawForbiddingIndirect(z);
         return;
       }
-      input_local[z * 21 + 8] = canDirectLand(z) ? kDrawPriority[0][z] : kDrawForbidden;
+      input_local[z + 648] = canDirectLand(z) ? kDrawPriority[0][z] : kDrawForbidden;
     }
   }
   if (enoughInkForSingleIndirect()) {
     for (int z : best) {
-      input_local[z * 21 + 8] = 1.0;
+      input_local[z + 648] = 1.0;
     }
   }
 }
@@ -135,9 +135,9 @@ void Board::initDrawSpecificIndirect(std::bitset<81>& outside) {
   for (int z = 0; z < 81; ++z) {
     const float p = kDrawPriority[0][z];
     if (outside.test(z)) {
-      input_local[z * 21 + 8] = p;
+      input_local[z + 648] = p;
     } else {
-      input_local[z * 21 + 8] = kDrawForbidden;
+      input_local[z + 648] = kDrawForbidden;
       if (p > max_priority) {
         max_priority = p;
         best.clear();
@@ -148,7 +148,7 @@ void Board::initDrawSpecificIndirect(std::bitset<81>& outside) {
     }
   }
   for (int z : best) {
-    input_local[z * 21 + 8] = 1.0;
+    input_local[z + 648] = 1.0;
   }
 }
 
@@ -157,18 +157,18 @@ void Board::initDrawForbiddingIndirect(int z) {
     const int x = z % 9;
     if (land[z] == 0) {
       const int y = z / 9;
-      input_local[z * 21 + 8] = canDirectWater(z, x, y) ? kDrawPriority[0][z] : kDrawForbidden;
+      input_local[z + 648] = canDirectWater(z, x, y) ? kDrawPriority[0][z] : kDrawForbidden;
     } else {
       if (x == 0 || x == 8) {
-        input_local[z * 21 + 8] = kDrawForbidden;
+        input_local[z + 648] = kDrawForbidden;
         continue;
       }
       const int y = z / 9;
       if (y == 0 || y == 8) {
-        input_local[z * 21 + 8] = kDrawForbidden;
+        input_local[z + 648] = kDrawForbidden;
         continue;
       }
-      input_local[z * 21 + 8] = canDirectLand(z) ? kDrawPriority[0][z] : kDrawForbidden;
+      input_local[z + 648] = canDirectLand(z) ? kDrawPriority[0][z] : kDrawForbidden;
     }
   }
 }
@@ -458,9 +458,9 @@ void Board::initThirdDraw() {
                 const float p = kDrawPriority[0][z];
                 if (outside_1.test(z)) {
                   if (outside_2.test(z)) {
-                    input_local[z * 21 + 8] = p;
+                    input_local[z + 648] = p;
                   } else {
-                    input_local[z * 21 + 8] = kDrawForbidden;
+                    input_local[z + 648] = kDrawForbidden;
                     if (p > max_priority_2) {
                       max_priority_2 = p;
                       best_2.clear();
@@ -470,7 +470,7 @@ void Board::initThirdDraw() {
                     }
                   }
                 } else {
-                  input_local[z * 21 + 8] = kDrawForbidden;
+                  input_local[z + 648] = kDrawForbidden;
                   if (p > max_priority_1) {
                     max_priority_1 = p;
                     best_1.clear();
@@ -481,10 +481,10 @@ void Board::initThirdDraw() {
                 }
               }
               for (int z : best_1) {
-                input_local[z * 21 + 8] = 1.0;
+                input_local[z + 648] = 1.0;
               }
               for (int z : best_2) {
-                input_local[z * 21 + 8] = 1.0;
+                input_local[z + 648] = 1.0;
               }
             } else {
               initDrawSpecificIndirect(outside_1);
@@ -560,25 +560,25 @@ bool Board::enoughInkForSingleIndirect() {
   int indirect_ink = 0;
   std::bitset<81> outside;
   std::stack<int> fill;
-  if (input_local[8] == kDrawForbidden) {
+  if (input_local[648] == kDrawForbidden) {
     indirect_ink += 2;
   } else {
     outside.set(0);
     fill.push(0);
   }
-  if (input_local[8 * 21 + 8] == kDrawForbidden) {
+  if (input_local[648 + 8] == kDrawForbidden) {
     indirect_ink += 2;
   } else {
     outside.set(8);
     fill.push(8);
   }
-  if (input_local[72 * 21 + 8] == kDrawForbidden) {
+  if (input_local[648 + 72] == kDrawForbidden) {
     indirect_ink += 2;
   } else {
     outside.set(72);
     fill.push(72);
   }
-  if (input_local[80 * 21 + 8] == kDrawForbidden) {
+  if (input_local[648 + 80] == kDrawForbidden) {
     indirect_ink += 2;
   } else {
     outside.set(80);
@@ -588,25 +588,25 @@ bool Board::enoughInkForSingleIndirect() {
     const int b = z + 72;
     const int c = z * 9;
     const int d = z * 9 + 8;
-    if (input_local[z * 21 + 8] == kDrawForbidden) {
+    if (input_local[z + 648] == kDrawForbidden) {
       ++indirect_ink;
     } else {
       outside.set(z);
       fill.push(z);
     }
-    if (input_local[b * 21 + 8] == kDrawForbidden) {
+    if (input_local[b + 648] == kDrawForbidden) {
       ++indirect_ink;
     } else {
       outside.set(b);
       fill.push(b);
     }
-    if (input_local[c * 21 + 8] == kDrawForbidden) {
+    if (input_local[c + 648] == kDrawForbidden) {
       ++indirect_ink;
     } else {
       outside.set(c);
       fill.push(c);
     }
-    if (input_local[d * 21 + 8] == kDrawForbidden) {
+    if (input_local[d + 648] == kDrawForbidden) {
       ++indirect_ink;
     } else {
       outside.set(d);
@@ -618,7 +618,7 @@ bool Board::enoughInkForSingleIndirect() {
     fill.pop();
     const int x = z % 9;
     if (x != 0 && !outside.test(z - 1)) {
-      if (input_local[z * 21 - 13] == kDrawForbidden) {
+      if (input_local[z + 647] == kDrawForbidden) {
         ++indirect_ink;
         if (indirect_ink == 25) {
           return false;
@@ -629,7 +629,7 @@ bool Board::enoughInkForSingleIndirect() {
       }
     }
     if (x != 8 && !outside.test(z + 1)) {
-      if (input_local[z * 21 + 29] == kDrawForbidden) {
+      if (input_local[z + 649] == kDrawForbidden) {
         ++indirect_ink;
         if (indirect_ink == 25) {
           return false;
@@ -641,7 +641,7 @@ bool Board::enoughInkForSingleIndirect() {
     }
     const int y = z / 9;
     if (y != 0 && !outside.test(z - 9)) {
-      if (input_local[z * 21 - 181] == kDrawForbidden) {
+      if (input_local[z + 639] == kDrawForbidden) {
         ++indirect_ink;
         if (indirect_ink == 25) {
           return false;
@@ -652,7 +652,7 @@ bool Board::enoughInkForSingleIndirect() {
       }
     }
     if (y != 8 && !outside.test(z + 9)) {
-      if (input_local[z * 21 + 197] == kDrawForbidden) {
+      if (input_local[z + 657] == kDrawForbidden) {
         ++indirect_ink;
         if (indirect_ink == 25) {
           return false;
@@ -686,7 +686,7 @@ void Board::doDraw(const int z) {
     input_global[9] = static_cast<float>(placements_until_draw) / 9.0f;
     input_global[10] = static_cast<float>(drawings_completed) / 2.0f;
     for (int zz = 0; zz < 81; ++zz) {
-      input_local[zz * 21 + 8] = kDrawForbidden;
+      input_local[zz + 648] = kDrawForbidden;
     }
     return;
   }
@@ -695,7 +695,7 @@ void Board::doDraw(const int z) {
   const int y = z / 9;
   if (ink == 2) {
     // TODO implement indirect around lake
-    if (land[z] == 0 && input_local[z * 21 + 8] == 1.0f) {
+    if (land[z] == 0 && input_local[z + 648] == 1.0f) {
       doDrawIndirect(drawings_completed != 2 || indirect_overlap ? 0 : findIndirect(z, x, y), x, y);
       return;
     } else {
@@ -706,38 +706,38 @@ void Board::doDraw(const int z) {
     ink += (x == 0 || land[z - 1] < kDrawFlag ? 1 : -1) + (x == 8 || land[z + 1] < kDrawFlag ? 1 : -1) + (y == 0 || land[z - 9] < kDrawFlag ? 1 : -1) + (y == 8 || land[z + 9] < kDrawFlag ? 1 : -1);
     input_global[0] = static_cast<float>(ink) / 24.0f;
   }
-  input_local[z * 21] = land[z] == 0 ? 1 : 0;
+  input_local[z] = land[z] == 0 ? 1 : 0;
   land[z] += kDrawFlag;
-  const float priority_plus_epsilon = input_local[z * 21 + 8] + 0.00390625f;  // 1/256 is a nice round number smaller than the smallest priority increment of 1/164
-  input_local[z * 21 + 8] = kDrawForbidden;
+  const float priority_plus_epsilon = input_local[z + 648] + 0.00390625f;  // 1/256 is a nice round number smaller than the smallest priority increment of 1/164
+  input_local[z + 648] = kDrawForbidden;
   updateDrawMode(x, y);
   if (ink == 24) {
     for (int zz = 0; zz < 81; ++zz) {
-      const float p = input_local[zz * 21 + 8];
+      const float p = input_local[zz + 648];
       if (p == kDrawUnavailable) {
         if (isDrawableWithoutInk(land[z], zz)) {
-          input_local[zz * 21 + 8] = kDrawPriority[draw_mode][zz];
+          input_local[zz + 648] = kDrawPriority[draw_mode][zz];
         }
       } else if (p > kDrawUnavailable) {
         if (p < priority_plus_epsilon) {
-          input_local[zz * 21 + 8] = isDrawableWithoutInk(land[z], zz) ? kDrawPriority[draw_mode][zz] : kDrawUnavailable;
+          input_local[zz + 648] = isDrawableWithoutInk(land[z], zz) ? kDrawPriority[draw_mode][zz] : kDrawUnavailable;
         } else {
-          input_local[zz * 21 + 8] = kDrawForbidden;
+          input_local[zz + 648] = kDrawForbidden;
         }
       }
     }
   } else {
     for (int zz = 0; zz < 81; ++zz) {
-      const float p = input_local[zz * 21 + 8];
+      const float p = input_local[zz + 648];
       if (p == kDrawUnavailable) {
         if (isDrawable(land[z], zz)) {
-          input_local[zz * 21 + 8] = kDrawPriority[draw_mode][zz];
+          input_local[zz + 648] = kDrawPriority[draw_mode][zz];
         }
       } else if (p > kDrawUnavailable) {
         if (p < priority_plus_epsilon) {
-          input_local[zz * 21 + 8] = isDrawable(land[z], zz) ? kDrawPriority[draw_mode][zz] : kDrawUnavailable;
+          input_local[zz + 648] = isDrawable(land[z], zz) ? kDrawPriority[draw_mode][zz] : kDrawUnavailable;
         } else {
-          input_local[zz * 21 + 8] = kDrawForbidden;
+          input_local[zz + 648] = kDrawForbidden;
         }
       }
     }
@@ -749,25 +749,25 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
   ink = 0;
   std::bitset<81> outside;
   std::stack<int> fill;
-  if ((input_local[8] == kDrawForbidden || input_local[8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 0))) {
+  if ((input_local[648] == kDrawForbidden || input_local[648] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 0))) {
     ink += 2;
   } else {
     outside.set(0);
     fill.push(0);
   }
-  if ((input_local[8 * 21 + 8] == kDrawForbidden || input_local[8 * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 8))) {
+  if ((input_local[648 + 8] == kDrawForbidden || input_local[648 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 8))) {
     ink += 2;
   } else {
     outside.set(8);
     fill.push(8);
   }
-  if ((input_local[72 * 21 + 8] == kDrawForbidden || input_local[72 * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 72))) {
+  if ((input_local[648 + 72] == kDrawForbidden || input_local[648 + 72] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 72))) {
     ink += 2;
   } else {
     outside.set(72);
     fill.push(72);
   }
-  if ((input_local[80 * 21 + 8] == kDrawForbidden || input_local[80 * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 80))) {
+  if ((input_local[648 + 80] == kDrawForbidden || input_local[648 + 80] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, 80))) {
     ink += 2;
   } else {
     outside.set(80);
@@ -777,25 +777,25 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
     const int b = z + 72;
     const int c = z * 9;
     const int d = z * 9 + 8;
-    if ((input_local[z * 21 + 8] == kDrawForbidden || input_local[z * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z))) {
+    if ((input_local[z + 648] == kDrawForbidden || input_local[z + 648] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z))) {
       ++ink;
     } else {
       outside.set(z);
       fill.push(z);
     }
-    if ((input_local[b * 21 + 8] == kDrawForbidden || input_local[b * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, b))) {
+    if ((input_local[b + 648] == kDrawForbidden || input_local[b + 648] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, b))) {
       ++ink;
     } else {
       outside.set(b);
       fill.push(b);
     }
-    if ((input_local[c * 21 + 8] == kDrawForbidden || input_local[c * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, c))) {
+    if ((input_local[c + 648] == kDrawForbidden || input_local[c + 648] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, c))) {
       ++ink;
     } else {
       outside.set(c);
       fill.push(c);
     }
-    if ((input_local[d * 21 + 8] == kDrawForbidden || input_local[d * 21 + 8] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, d))) {
+    if ((input_local[d + 648] == kDrawForbidden || input_local[d + 648] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, d))) {
       ++ink;
     } else {
       outside.set(d);
@@ -808,7 +808,7 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
     const int x = z % 9;
     const int y = z / 9;
     if (x != 0 && !outside.test(z - 1)) {
-      if ((input_local[z * 21 - 13] == kDrawForbidden || input_local[z * 21 - 13] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z - 1, x - 1, y))) {
+      if ((input_local[z + 647] == kDrawForbidden || input_local[z + 647] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z - 1, x - 1, y))) {
         ++ink;
       } else {
         outside.set(z - 1);
@@ -816,7 +816,7 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
       }
     }
     if (x != 8 && !outside.test(z + 1)) {
-      if ((input_local[z * 21 + 29] == kDrawForbidden || input_local[z * 21 + 29] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z + 1, x + 1, y))) {
+      if ((input_local[z + 649] == kDrawForbidden || input_local[z + 649] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z + 1, x + 1, y))) {
         ++ink;
       } else {
         outside.set(z + 1);
@@ -824,7 +824,7 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
       }
     }
     if (y != 0 && !outside.test(z - 9)) {
-      if ((input_local[z * 21 - 181] == kDrawForbidden || input_local[z * 21 - 181] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z - 9, x, y - 1))) {
+      if ((input_local[z + 639] == kDrawForbidden || input_local[z + 639] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z - 9, x, y - 1))) {
         ++ink;
       } else {
         outside.set(z - 9);
@@ -832,7 +832,7 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
       }
     }
     if (y != 8 && !outside.test(z + 9)) {
-      if ((input_local[z * 21 + 197] == kDrawForbidden || input_local[z * 21 + 197] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z + 9, x, y + 1))) {
+      if ((input_local[z + 657] == kDrawForbidden || input_local[z + 657] == 1.0f) && (l == 0 || !canDirectWaterSpecific(l, z + 9, x, y + 1))) {
         ++ink;
       } else {
         outside.set(z + 9);
@@ -843,9 +843,9 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
 
   for (int z = 0; z < 81; ++z) {
     if (!outside.test(z)) {
-      input_local[z * 21] = land[z] == 0 ? 1 : 0;
+      input_local[z] = land[z] == 0 ? 1 : 0;
       land[z] += kDrawFlag;
-      input_local[z * 21 + 8] = kDrawForbidden;
+      input_local[z + 648] = kDrawForbidden;
     }
   }
   input_global[0] = static_cast<float>(ink) / 24.0f;
@@ -853,13 +853,13 @@ void Board::doDrawIndirect(const int l, const int xx, const int yy) {
   if (ink == 24) {
     for (int z = 0; z < 81; ++z) {
       if (outside.test(z)) {
-        input_local[z * 21 + 8] = isDrawableWithoutInk(kDrawFlag, z) ? kDrawPriority[draw_mode][z] : kDrawUnavailable;
+        input_local[z + 648] = isDrawableWithoutInk(kDrawFlag, z) ? kDrawPriority[draw_mode][z] : kDrawUnavailable;
       }
     }
   } else {
     for (int z = 0; z < 81; ++z) {
       if (outside.test(z)) {
-        input_local[z * 21 + 8] = isDrawable(kDrawFlag, z) ? kDrawPriority[draw_mode][z] : kDrawUnavailable;
+        input_local[z + 648] = isDrawable(kDrawFlag, z) ? kDrawPriority[draw_mode][z] : kDrawUnavailable;
       }
     }
   }
@@ -1110,18 +1110,18 @@ void Board::doPlace(const int z, const int t) {
   --placements_until_draw;
   input_global[8] = static_cast<float>(placements_remaining) / 26.0f;
   input_global[9] = static_cast<float>(placements_until_draw) / 9.0f;
-  input_local[z * 21 + t] = 1.0;
+  input_local[t * 81 + z] = 1.0;
   for (int i = 0; i < 2; ++i) {
     for (const int zz : kZoneZ[offer_zone[i]]) {
-      input_local[zz * 21 + 8 + offer_tile[i]] = 0.0;
+      input_local[(offer_tile[i] + 8) * 81 + zz] = 0.0;
     }
   }
   if (t == kWave) {
     const int x = z % 9;
     const int y = z / 9;
     for (int i = 0; i < 9; ++i) {
-      const int i19 = (i * 9 + x) * 21 + 19;
-      const int i20 = (y * 9 + i) * 21 + 20;
+      const int i19 = 1539 + i * 9 + x;
+      const int i20 = 1620 + y * 9 + i;
       if (input_local[i19] == 0.0f) {
         input_local[i19] = 0.5f;
       } else if (input_local[i19] == 0.5f) {

@@ -113,7 +113,7 @@ static constexpr int kZoneZ[27][9] = {
     {60, 61, 62, 69, 70, 71, 78, 79, 80}};
 static constexpr char kTileChars[8]{'.', 'f', 'h', 's', 'w', 'M', 'C', 'B'};
 static constexpr char kZoneChars[27]{'9', '8', '7', '6', '5', '4', '3', '2', '1', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'Q', 'W', 'E', 'A', 'S', 'D', 'Z', 'X', 'C'};
-static constexpr int kMovePass = 82;
+static constexpr int kMovePass = kTensorLengths[kOutputPolicy] - 1;
 static constexpr float kInkInitial = 1.0f / 12.0f;
 static constexpr float kInkMinimal = 4.0f / 24.0f;
 static constexpr float kDeckDenom[8]{54.0, 13.0, 10.0, 9.0, 9.0, 5.0, 5.0, 3.0};
