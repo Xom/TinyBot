@@ -18,7 +18,8 @@ static constexpr double kCoefExplore = 50.0 / kScoreDenom;     // proportional t
 static constexpr double kCoefUnvisited = -10.0 / kScoreDenom;  // proportional to game score stdev; KataGo uses kCoefExplore * -2/11
 static constexpr int kStuckPenaltyInt = 100;
 static constexpr double kStuckPenaltyDouble = static_cast<double>(kStuckPenaltyInt) / kScoreDenom;
-static constexpr double kNegativeInfinity = -std::numeric_limits<double>::infinity();  // gcc only?
+static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinity();  // gcc only?
+static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 
 enum TensorId { kInputLocal,

@@ -77,8 +77,9 @@ class SearchManager {
   //  [[noreturn]] void searchPurePolicy(const std::string& filename) const;
   void run();
 
+ private:
   int search_threads;
-  std::unique_ptr<InferenceManager> inference_manager;  // TODO make private after testing
+  std::unique_ptr<InferenceManager> inference_manager;
 };
 
 }  // namespace tinybot

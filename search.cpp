@@ -199,6 +199,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
 }
 
 [[noreturn]] void SearchManager::search(const std::string& filename) const {
+  std::exponential_distribution<> expd{1};
   std::ofstream out_file;
   out_file.open(filename);
   unsigned long original_seed = stringToSeed(filename);
@@ -212,11 +213,13 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
     game.ticket = inference_manager->request(game.root->board.input_local, game.root->board.input_global);
   }
 
+  //  int debug_counter = 0;
+  //  int debug_score = 0;
   while (true) {
-//    bool first_flag = true;
+    //    bool first_flag = true;
     for (Game& game : games) {
-//      const bool is_first = first_flag;
-//      first_flag = false;
+      //      const bool is_first = first_flag;
+      //      first_flag = false;
 
       const int offset = game.ticket.cursor * kTensorLengths[kOutputPolicy];
       float* output_policy = game.ticket.future.get()->output_policy;
@@ -331,12 +334,14 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             stack.clear();
           } while (game.sim->board.is_player_turn);
 
-//          if (is_first) {
-//            std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
-//            game.sim->board.display();
-//            std::cout << "\n";
-//          }
           game.sim->board.calculateScore();
+          //          ++debug_counter;
+          //          debug_score += game.sim->board.score[8];
+          //          if (rng(1024) == 0) {
+          //            std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
+          //            game.sim->board.display();
+          //            std::cout << debug_counter << ": " << static_cast<float>(debug_score) / static_cast<float>(debug_counter) << "\n";
+          //          }
           const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
           for (auto& node : game.stack) {
             node->sum += ev;
@@ -351,13 +356,33 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
           const bool drawing = game.sim->board.placements_until_draw == 0;
           const int n = game.sim->priors.size();
           int random_i = 0;
-          double r = static_cast<double>((drawing ? game.sim_rng_draw : game.sim_rng_place)()) / kPcg32MaxDouble;
-          for (int i = 0; i < n; ++i) {
-            if (r < game.sim->priors[i]) {
-              random_i = i;
-              break;
+          if (drawing) {
+            double r = static_cast<double>(game.sim_rng_draw()) / kPcg32MaxDouble;
+            for (int i = 0; i < n; ++i) {
+              if (r < game.sim->priors[i]) {
+                random_i = i;
+                break;
+              }
+              r -= game.sim->priors[i];
             }
-            r -= game.sim->priors[i];
+          } else {
+            //                        double r = static_cast<double>(game.sim_rng_place()) / kPcg32MaxDouble;
+            //                        for (int i = 0; i < n; ++i) {
+            //                          if (r < game.sim->priors[i]) {
+            //                            random_i = i;
+            //                            break;
+            //                          }
+            //                          r -= game.sim->priors[i];
+            //                        }
+            double best = kPositiveInfinity;
+            for (int i = 0; i < n; ++i) {
+              pcg32 move_rng{game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + game.sim->moves[i]};
+              const double proj = expd(move_rng) / game.sim->priors[i];
+              if (proj < best) {
+                best = proj;
+                random_i = i;
+              }
+            }
           }
           game.sim->priors.clear();
           if (drawing) {
@@ -609,11 +634,11 @@ void SearchManager::run() {
     char c = 'a' + i;
     std::stringstream ss;
     ss << std::time(nullptr) << c << ".txt";
-//    if (i == 0) {
-//      std::thread(lambda, "YOLO.txt").detach();
-//    } else {
-      std::thread(lambda, ss.str()).detach();
-//    }
+    //    if (i == 0) {
+    //      std::thread(lambda, "YOLO.txt").detach();
+    //    } else {
+    std::thread(lambda, ss.str()).detach();
+    //    }
   }
 }
 
