@@ -28,7 +28,11 @@ struct Node {
   void populateDraw();
   void normalizePriorsAndSortMoves(pcg32& rng, bool boost);  // assumes !moves.empty()
   void unboost();
-  int selectChild(double coef_unvisited);
+  int selectChild(bool apply_coef_unvisited, double* coefs_explore);
+  int getSearchThreshold(const int* search_thresholds) const;
+  double getCoefExplore(const double* coefs_explore) const;
+  double getCoefUnvisited(const double* coefs_explore) const;
+  double getCoefUnvisited(double coef_explore) const;
 
   Board board;
   std::vector<int> moves;
@@ -73,7 +77,7 @@ class SearchManager {
   SearchManager(int st, const char* trt_filename);
 
   static unsigned long stringToSeed(const std::string& filename);
-  [[noreturn]] void search(const std::string& filename) const;
+  [[noreturn]] void search(const std::string& filename, int thread_id) const;
   //  [[noreturn]] void searchPurePolicy(const std::string& filename) const;
   void run();
 

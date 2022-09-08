@@ -20,6 +20,7 @@ class Board {
  public:  // everything public, I can't be arsed to keep track of what can be private
   void display();
   void displayInputs();
+  int phase() const;
   void doOffer(IDeck& d, std::vector<int>* moves);  // doPlace() is responsible for clearing placeable inputs
   void initDraw();                                  // doPlace() is responsible for clearing placeable inputs
   void initDrawLimitedIndirect();

@@ -10,17 +10,31 @@ namespace tinybot {
 static constexpr int kBatchSize = 256;
 static constexpr int kConcurrentInferences = 1;  // 2022-08-15: current code doesn't work for kConcurrentInferences > 1 because multiple execution contexts require multiple optimization profiles
 static constexpr int kConcurrentGames = kBatchSize * 2;
-static constexpr int kSearchThresholdShort = 8;
-static constexpr int kSearchThresholdMedium = 32;
-static constexpr int kSearchThresholdLong = 64;
 static constexpr float kScoreDenom = 128.0f;
-static constexpr double kCoefExplore = 50.0 / kScoreDenom;     // proportional to game score stdev / branching factor
-static constexpr double kCoefUnvisited = -10.0 / kScoreDenom;  // proportional to game score stdev; KataGo uses kCoefExplore * -2/11
 static constexpr int kStuckPenaltyInt = 100;
 static constexpr double kStuckPenaltyDouble = static_cast<double>(kStuckPenaltyInt) / kScoreDenom;
 static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinity();  // gcc only?
 static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
+
+static constexpr int kSearchThresholds[12]{8, 64, 64, 64,
+                                           32, 64, 64, 64,
+                                           32, 64, 64, 64};
+static constexpr double kCoefsExplore[12]{50.0, 50.0, 50.0, 50.0,
+                                          50.0, 50.0, 50.0, 50.0,
+                                          50.0, 50.0, 50.0, 50.0};  // proportional to game score stdev / branching factor
+enum BoardPhase { kPhase0a,
+                  kPhase0b,
+                  kPhase0c,
+                  kPhase0d,
+                  kPhase1a,
+                  kPhase1b,
+                  kPhase1c,
+                  kPhase1d,
+                  kPhase2a,
+                  kPhase2b,
+                  kPhase2c,
+                  kPhase2d };
 
 enum TensorId { kInputLocal,
                 kInputGlobal,

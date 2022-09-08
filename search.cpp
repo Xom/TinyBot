@@ -57,11 +57,13 @@ void Node::unboost() {
   }
 }
 
-int Node::selectChild(const double coef_unvisited) {
+int Node::selectChild(const bool apply_coef_unvisited, double* coefs_explore) {
   //  if (moves.size() == 1) {
   //    return 0;
   //  }
-  const double coef_explore = kCoefExplore * sqrt(static_cast<double>(visits));
+  const double base_coef_explore = getCoefExplore(coefs_explore);
+  const double coef_explore = base_coef_explore * sqrt(static_cast<double>(visits));
+  const double coef_unvisited = apply_coef_unvisited ? getCoefUnvisited(base_coef_explore) : 0;
   double p_explored = 0;
   int best_i = 0;
   double best_ucb = kNegativeInfinity;
@@ -78,6 +80,22 @@ int Node::selectChild(const double coef_unvisited) {
     }
   }
   return best_i;
+}
+
+int Node::getSearchThreshold(const int* search_thresholds) const {
+  return search_thresholds[board.phase()];
+}
+
+double Node::getCoefExplore(const double* coefs_explore) const {
+  return coefs_explore[board.phase()] / kScoreDenom;
+}
+
+double Node::getCoefUnvisited(const double* coefs_explore) const {
+  return getCoefUnvisited(getCoefExplore(coefs_explore));
+}
+
+double Node::getCoefUnvisited(const double coef_explore) const {
+  return -0.2 * coef_explore;
 }
 
 void Game::reset() {
@@ -198,11 +216,23 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
   return result[0];
 }
 
-[[noreturn]] void SearchManager::search(const std::string& filename) const {
-  std::exponential_distribution<> expd{1};
+[[noreturn]] void SearchManager::search(const std::string& filename, const int thread_id) const {
+  unsigned long original_seed = stringToSeed(filename);
   std::ofstream out_file;
   out_file.open(filename);
-  unsigned long original_seed = stringToSeed(filename);
+
+  int search_thresholds[12];
+  double coefs_explore[12];
+  for (int i = 0; i < 12; ++i) {
+    search_thresholds[i] = kSearchThresholds[i];
+    coefs_explore[i] = kCoefsExplore[i];
+  }
+  switch (thread_id) {
+    default:
+      break;
+  }
+
+  std::exponential_distribution<> expd{1};
   pcg32 rng(original_seed, 0);
   PcgDeck deck(pcg32(original_seed, 1));  // TODO test rng ?= pcg32(rng())
   Game games[kConcurrentGames / search_threads];
@@ -256,7 +286,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
                 game.sim->normalizePriorsAndSortMoves(rng, false);
               }
 
-              const int i = game.sim->selectChild(0);  // TODO should I use coef_unvisited?
+              const int i = game.sim->selectChild(false, coefs_explore);  // TODO should I use coef_unvisited?
 
               if (i == game.sim->children.size()) {
                 std::shared_ptr<Node> child = std::make_shared<Node>(game.sim->board);
@@ -276,7 +306,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
 
               std::shared_ptr<Node> child = game.sim->children[i];
 
-              if (child->visits < kSearchThresholdLong) {
+              if (child->visits < game.sim->getSearchThreshold(search_thresholds)) {
                 stack.push_back(child);
                 continue;
               }
@@ -301,7 +331,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
                 continue;
               }
 
-              const int i = leaf->moves.size() == 1 ? 0 : leaf->selectChild(kCoefUnvisited);
+              const int i = leaf->moves.size() == 1 ? 0 : leaf->selectChild(true, coefs_explore);
 
               if (i == leaf->children.size()) {
                 std::shared_ptr<Node> child = std::make_shared<Node>(leaf->board);
@@ -490,7 +520,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             continue;
           }
 
-          const int i = game.root->selectChild(0);
+          const int i = game.root->selectChild(false, coefs_explore);
 
           if (i == game.root->children.size()) {
             std::shared_ptr<Node> child = std::make_shared<Node>(game.root->board);
@@ -510,8 +540,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
 
           std::shared_ptr<Node> child = game.root->children[i];
 
-          if (child->visits < (child->board.placements_remaining > 18 ? kSearchThresholdShort : child->board.placements_until_draw > 1 ? kSearchThresholdMedium
-                                                                                                                                       : kSearchThresholdLong)) {
+          if (child->visits < game.root->getSearchThreshold(search_thresholds)) {
             game.stack.push_back(child);
             continue;
           }
@@ -545,7 +574,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
             if (leaf->priors.empty()) {
               break;
             }
-            i = leaf->selectChild(kCoefUnvisited);
+            i = leaf->selectChild(true, coefs_explore);
           }
 
           if (i == leaf->children.size()) {
@@ -629,7 +658,7 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
 }
 
 void SearchManager::run() {
-  auto lambda = [this](const std::string& filename) { search(filename); };
+  auto lambda = [this](const std::string& filename, const int i) { search(filename, i); };
   for (int i = 0; i < search_threads; ++i) {
     char c = 'a' + i;
     std::stringstream ss;
@@ -637,7 +666,7 @@ void SearchManager::run() {
     //    if (i == 0) {
     //      std::thread(lambda, "YOLO.txt").detach();
     //    } else {
-    std::thread(lambda, ss.str()).detach();
+    std::thread(lambda, ss.str(), i).detach();
     //    }
   }
 }
