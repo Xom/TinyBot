@@ -17,12 +17,12 @@ static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinit
 static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 
-static constexpr int kSearchThresholds[12]{8, 64, 64, 64,
-                                           32, 64, 64, 64,
-                                           32, 64, 64, 64};
-static constexpr double kCoefsExplore[12]{50.0, 50.0, 50.0, 50.0,
-                                          50.0, 50.0, 50.0, 50.0,
-                                          50.0, 50.0, 50.0, 50.0};  // proportional to game score stdev / branching factor
+static constexpr int kSearchThresholds[12]{12, 32, 32, 32,
+                                           12, 32, 32, 32,
+                                           12, 32, 32, 32};
+static constexpr double kCoefsExplore[12]{40.0, 40.0, 40.0, 40.0,
+                                          40.0, 40.0, 40.0, 40.0,
+                                          40.0, 40.0, 40.0, 40.0};  // proportional to game score stdev / branching factor
 enum BoardPhase { kPhase0a,
                   kPhase0b,
                   kPhase0c,

@@ -216,6 +216,19 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
   return result[0];
 }
 
+std::string SearchManager::threadInfo(const std::string& filename, const int thread_id, const int* search_thresholds, const double* coefs_explore) const {
+  std::stringstream ss;
+  ss << thread_id << ' ' << filename;
+  for (int i = 0; i < 12; ++i) {
+    ss << ' ' << search_thresholds[i];
+  }
+  for (int i = 0; i < 12; ++i) {
+    ss << ' ' << coefs_explore[i];
+  }
+  ss << "\n";
+  return ss.str();
+}
+
 [[noreturn]] void SearchManager::search(const std::string& filename, const int thread_id) const {
   unsigned long original_seed = stringToSeed(filename);
   std::ofstream out_file;
@@ -228,9 +241,29 @@ unsigned long SearchManager::stringToSeed(const std::string& filename) {
     coefs_explore[i] = kCoefsExplore[i];
   }
   switch (thread_id) {
+    case 4:
+      search_thresholds[kPhase0b] = 24;
+      search_thresholds[kPhase0c] = 24;
+      search_thresholds[kPhase0d] = 24;
+      break;
+    case 5:
+      search_thresholds[kPhase0a] = 8;
+      break;
+    case 6:
+      search_thresholds[kPhase1a] = 8;
+      break;
+    case 7:
+      search_thresholds[kPhase2a] = 8;
+      break;
+//    case 7:
+//      for (double& d : coefs_explore) {
+//        d = 40.0;
+//      }
+//      break;
     default:
       break;
   }
+  std::cout << threadInfo(filename, thread_id, search_thresholds, coefs_explore);
 
   std::exponential_distribution<> expd{1};
   pcg32 rng(original_seed, 0);
