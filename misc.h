@@ -32,22 +32,6 @@ std::vector<std::string> split(const std::string& s, char delim);  // Split stri
 // Finds the first index i within [low,high) where arr[i] > x, or high if such an index does not exist.
 size_t findFirstGt(const double* arr, double x, size_t low, size_t high);
 
-// https://stackoverflow.com/questions/17074324/how-can-i-sort-two-vectors-in-the-same-way-with-criteria-that-uses-only-one-of/17074810#17074810
-template <typename T, typename Compare>
-std::vector<std::size_t> sort_permutation(const std::vector<T>& vec, const Compare& compare) {
-  std::vector<std::size_t> p(vec.size());
-  std::iota(p.begin(), p.end(), 0);
-  std::stable_sort(p.begin(), p.end(), [&](std::size_t i, std::size_t j) { return compare(vec[i], vec[j]); });
-  return p;
-}
-
-template <typename T>
-std::vector<T> apply_permutation(const std::vector<T>& vec, const std::vector<std::size_t>& p) {
-  std::vector<T> sorted_vec(vec.size());
-  std::transform(p.begin(), p.end(), sorted_vec.begin(), [&](std::size_t i) { return vec[i]; });
-  return sorted_vec;
-}
-
 }  // namespace tinybot
 
 #endif  // TINYBOT_MISC_H

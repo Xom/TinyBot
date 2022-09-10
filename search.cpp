@@ -122,9 +122,26 @@ void Node::noisifyPriors(pcg32& rng, const bool do_temperature) {
 }
 
 void Node::sortMoves() {
-  auto perm = sort_permutation(priors, std::greater<>{});
-  priors = apply_permutation(priors, perm);
-  moves = apply_permutation(moves, perm);
+  const int begin_index = children.size();
+  const int end_index = priors.size();
+  const int count = end_index - begin_index;
+  std::vector<int> perm;
+  for (int i = begin_index; i < end_index; ++i) {
+    perm.push_back(i);
+  }
+  auto compare = std::greater<>{};
+  std::stable_sort(perm.begin(), perm.end(), [&](int i, int j) { return compare(priors[i], priors[j]); });
+
+  double p_buffer[count];
+  int m_buffer[count];
+  for (int i = 0; i < count; ++i) {
+    p_buffer[i] = priors[perm[i]];
+    m_buffer[i] = moves[perm[i]];
+  }
+  for (int i = 0; i < count; ++i) {
+    priors[begin_index + i] = p_buffer[i];
+    moves[begin_index + i] = m_buffer[i];
+  }
 }
 
 int Node::selectChild(const bool apply_coef_unvisited, double* coefs_explore) {
