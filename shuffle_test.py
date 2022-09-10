@@ -1,10 +1,10 @@
 import numpy as np
 
 z = [
-    np.load('tb00m.npz'),
-    np.load('tb00n.npz'),
-    np.load('tb00o.npz'),
-    np.load('tb00p.npz')
+    np.load('tb01m.npz'),
+    np.load('tb01n.npz'),
+    np.load('tb01o.npz'),
+    np.load('tb01p.npz')
     ]
 
 for i in range(4):

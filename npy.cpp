@@ -131,9 +131,6 @@ int npy(const bool legacy_data) {
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
         input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         board.doDraw(kMovePass);
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 37) {
         if (i % 2 == 1) {
@@ -195,9 +192,6 @@ int npy(const bool legacy_data) {
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
         input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         board.doDraw(kMovePass);
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 54) {
         if (i % 2 == 0) {
@@ -259,9 +253,6 @@ int npy(const bool legacy_data) {
         insert_input_local(input_local_tmp, board.input_local, symmetry_input);
         input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         board.doDraw(kMovePass);
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
         insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else {
         if (legacy_data) {

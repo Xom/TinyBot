@@ -991,8 +991,9 @@ def main(rank: int, args, multi_gpu_device_ids, readpipes, writepipes, barrier):
           os.mkdir(savepathtmp)
           logging.info("SAVING MODEL FOR EXPORT TO: " + savepath)
           save(ddp_model, swa_model, optimizer, metrics_obj, running_metrics, train_state, path=os.path.join(savepathtmp,"model.ckpt"))
-          dummy_input = (torch.randn(256, 21, 9, 9, device="cuda:0"), torch.randn(256, 11, device="cuda:0"))
-          torch.onnx.export(ddp_model, dummy_input, os.path.join(savepathtmp,"model.onnx"), input_names=["input_local", "input_global"], output_names=["output_policy", "output_value", "output_land"])
+          for i in [1, 2, 64, 128, 256]:
+            dummy_input = (torch.randn(i, 21, 9, 9, device="cuda:0"), torch.randn(i, 11, device="cuda:0"))
+            torch.onnx.export(ddp_model, dummy_input, os.path.join(savepathtmp,"model" + str(i) + ".onnx"), input_names=["input_local", "input_global"], output_names=["output_policy", "output_value", "output_land"])
           time.sleep(2)
           os.rename(savepathtmp,savepath)
 

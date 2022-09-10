@@ -1398,7 +1398,7 @@ class Model(torch.nn.Module):
     # The inner tuple ranges over the outputs of a set of heads (policy, value, etc).
     def forward(self, input_spatial, input_global):
         #mask = input_spatial[:, 0:1, :, :].contiguous()
-        mask = torch.ones((256, 1, 9, 9), dtype=torch.float32, device=input_spatial.device).contiguous() # assume batch size 256
+        mask = torch.ones((input_spatial.shape[0], 1, 9, 9), dtype=torch.float32, device=input_spatial.device).contiguous()
         mask_sum_hw = torch.sum(mask,dim=(2,3),keepdim=True)
         mask_sum = torch.sum(mask)
 

@@ -42,13 +42,9 @@ class Metrics:
         return loss
 
     def loss_tiny_samplewise(self, pred, target):
-        # Huber will incentivize this to not actually converge to the mean,
-        #but rather something meanlike locally and something medianlike
-        # for very large possible losses. This seems... okay - it might actually
-        # be what users want.
         assert pred.shape == (self.n, 8)
         assert target.shape == (self.n, 8)
-        loss = torch.sum(huber_loss(pred, target, delta = 12.0), dim=1)
+        loss = torch.sum(torch.square(pred - target), dim=1)
         return loss * 64
 
     def loss_ownership_samplewise(self, pred_pretanh, target):
