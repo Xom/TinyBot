@@ -16,9 +16,10 @@ static constexpr double kStuckPenaltyDouble = static_cast<double>(kStuckPenaltyI
 static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinity();  // gcc only?
 static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
+static constexpr double kNoiseTotal = 10.83;
 
-static constexpr int kSearchThresholds[12]{4, 12, 12, 12,
-                                           4, 24, 24, 24,
+static constexpr int kSearchThresholds[12]{8, 12, 12, 12,
+                                           8, 24, 24, 24,
                                            16, 36, 36, 36};
 static constexpr double kCoefsExplore[12]{20.0, 20.0, 20.0, 20.0,
                                           20.0, 20.0, 20.0, 20.0,

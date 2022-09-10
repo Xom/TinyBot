@@ -11,6 +11,7 @@
 #include <thread>
 #include <vector>
 
+#include "dirichlet/dirichlet.h"
 #include "pcg/pcg_random.h"
 
 #include "board.h"
@@ -26,8 +27,12 @@ struct Node {
   explicit Node(Board& other);
 
   void populateDraw();
-  void normalizePriorsAndSortMoves(pcg32& rng, bool boost);  // assumes !moves.empty()
-  void unboost();
+  // methods on priors assume !empty()
+  void uniformPriors(pcg32& rng);
+  void logitsToPriors(pcg32& rng, bool is_root);
+  void normalizePriors(bool do_sort);
+  void noisifyPriors(pcg32& rng, bool do_temperature);
+  void sortMoves();
   int selectChild(bool apply_coef_unvisited, double* coefs_explore);
   int getSearchThreshold(const int* search_thresholds) const;
   double getCoefExplore(const double* coefs_explore) const;
@@ -53,9 +58,9 @@ class Game {
   void doOffer(pcg32& rng, IDeck& deck);
   void doPlace(int z, int t);
   void doPlace(int move);
-  void doPlace(std::shared_ptr<Node> child);  // must use this version if child exists
+  void doPlace(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
   void doDraw(int move);
-  void doDraw(std::shared_ptr<Node> child);  // must use this version if child exists
+  void doDraw(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
   void start(pcg32& rng, IDeck& deck);
   void restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
 

@@ -17,22 +17,30 @@ void Node::populateDraw() {
   }
 }
 
-void Node::normalizePriorsAndSortMoves(pcg32& rng, const bool boost) {
-  double total = 0;
-  for (double& d : priors) {
-    if (boost) {
-      d *= d;  // boost signal from weak net
+void Node::uniformPriors(pcg32& rng) {
+  const auto n = moves.size();
+  const double p = 1.0 / static_cast<double>(n);
+  priors.insert(priors.end(), n, p);
+  pcg_extras::shuffle(moves.begin(), moves.end(), rng);
+}
+
+void Node::logitsToPriors(pcg32& rng, const bool is_root) {
+  if (is_root) {
+    const double temperature = board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
+                                                                                                    : 1.1;
+    for (double& d : priors) {
+      d = exp(d / temperature);
     }
-    total += d;
-  }
-  for (double& d : priors) {
-    d /= total;
+    normalizePriors(false);
+    noisifyPriors(rng, false);
+  } else {
+    for (double& d : priors) {
+      d = exp(d);
+    }
+    normalizePriors(true);
   }
 
-  auto perm = sort_permutation(priors, std::greater<>{});
-  priors = apply_permutation(priors, perm);
-  moves = apply_permutation(moves, perm);
-
+  // randomize ties
   int streak_begin = 0;
   double prev = priors[0];
   for (int i = 1; i < priors.size(); ++i) {
@@ -46,15 +54,77 @@ void Node::normalizePriorsAndSortMoves(pcg32& rng, const bool boost) {
   }
 }
 
-void Node::unboost() {
+void Node::normalizePriors(const bool do_sort) {
   double total = 0;
   for (double& d : priors) {
-    d = sqrt(d);
     total += d;
   }
   for (double& d : priors) {
     d /= total;
   }
+  if (do_sort) {
+    sortMoves();
+  }
+}
+
+void Node::noisifyPriors(pcg32& rng, const bool do_temperature) {
+  const auto n = moves.size();
+  const double n_double = static_cast<double>(n);
+  const double uniform_p = 1.0 / n_double;
+
+  if (do_temperature) {
+    const double e_t = 1 / (board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
+                                                                                                 : 1.1);
+    for (double& d : priors) {
+      d = pow(d, e_t);
+    }
+    normalizePriors(false);
+  }
+
+  std::vector<double> alpha;
+  // We're going to generate a gamma draw on each move with alphas that sum up to kNoiseTotal.
+  // Half of the alpha weight are uniform.
+  // The other half are shaped based on the log of the existing policy.
+  double mean_log_p = 0.0;
+  for (double& p : priors) {
+    const double log_p = log(std::min(0.01, p + 1e-20));  // cap priors at 0.01 so we can distinguish 0.01-ish priors from 0.00-ish priors
+    alpha.push_back(log_p);
+    mean_log_p += log_p;
+  }
+  mean_log_p /= n_double;
+  double alpha_sum = 0.0;
+  for (double& a : alpha) {
+    if (a > mean_log_p) {
+      a -= mean_log_p;
+      alpha_sum += a;
+    } else {
+      a = 0.0;
+    }
+  }
+  if (alpha_sum <= 0.0) {
+    const double d = uniform_p * kNoiseTotal;
+    for (double& a : alpha) {
+      a = d;
+    }
+  } else {
+    const double d = 0.5 * kNoiseTotal;
+    for (double& a : alpha) {
+      a = d * (a / alpha_sum + uniform_p);
+    }
+  }
+  // alpha_dist now contains the proportions with which we would like to split the alpha
+  dirichlet_distribution<pcg32> dist(alpha);
+  alpha = dist(rng);
+  for (int i = 0; i < n; ++i) {
+    priors[i] = priors[i] * 0.75 + alpha[i] * 0.25;
+  }
+  sortMoves();
+}
+
+void Node::sortMoves() {
+  auto perm = sort_permutation(priors, std::greater<>{});
+  priors = apply_permutation(priors, perm);
+  moves = apply_permutation(moves, perm);
 }
 
 int Node::selectChild(const bool apply_coef_unvisited, double* coefs_explore) {
@@ -132,7 +202,7 @@ void Game::doPlace(const int move) {
   doPlace(move % 81, move / 81);
 }
 
-void Game::doPlace(std::shared_ptr<Node> child) {
+void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child) {
   root = std::move(child);
   const int z = root->move % 81;
   const int t = root->move / 81;
@@ -140,8 +210,8 @@ void Game::doPlace(std::shared_ptr<Node> child) {
   record.push_back(kZoneChars[z % 9 + 9]);
   record.push_back(kZoneChars[z / 9]);
   record.push_back(' ');
-  if (root->board.is_player_turn) {
-    root->unboost();
+  if (root->board.is_player_turn && root->moves.size() > 1) {
+    root->noisifyPriors(rng, true);
   }
   sim_stream += root->visits;
 }
@@ -161,14 +231,16 @@ void Game::doDraw(const int move) {
   // not sure whether I should modify visits; hopefully it's no big deal...
 }
 
-void Game::doDraw(std::shared_ptr<Node> child) {
+void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child) {
   root = std::move(child);
   if (root->move == kMovePass) {
     record.push_back(' ');
   } else {
     record.push_back(kZoneChars[root->move % 9 + 9]);
     record.push_back(kZoneChars[root->move / 9]);
-    root->unboost();
+    if (root->moves.size() > 1) {
+      root->noisifyPriors(rng, true);
+    }
   }
   sim_stream += root->visits;
 }
@@ -241,7 +313,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
     coefs_explore[i] = kCoefsExplore[i];
   }
 
-//  searchExperiment(thread_id, search_thresholds, coefs_explore);
+  //  searchExperiment(thread_id, search_thresholds, coefs_explore);
   std::cout << threadInfo(filename, thread_id, search_thresholds, coefs_explore);
 
   std::exponential_distribution<> expd{1};
@@ -268,9 +340,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
 
       if (game.sim) {
         for (const int move : game.sim->moves) {
-          game.sim->priors.push_back(expf(output_policy[offset + move]));
+          game.sim->priors.push_back(output_policy[offset + move]);
         }
-        game.sim->normalizePriorsAndSortMoves(rng, true);
+        game.sim->logitsToPriors(rng, false);
 
         if (game.sim->board.placements_remaining == 0) {
           std::vector<std::shared_ptr<Node>> stack{};
@@ -283,19 +355,13 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                     game.sim->moves.clear();
                     game.sim->priors.clear();
                     game.sim->populateDraw();
-                    //                    for (int i = 0; i < game.sim->moves.size(); ++i) {
-                    //                      game.sim->priors.push_back(1);
-                    //                    }
-                    //                    game.sim->normalizePriorsAndSortMoves(rng, false);
+                    //                    game.sim->uniformPriors(rng);
                   } else {
                     game.sim = game.sim->children[0];
                   }
                   continue;
                 }
-                for (int i = 0; i < game.sim->moves.size(); ++i) {
-                  game.sim->priors.push_back(1);
-                }
-                game.sim->normalizePriorsAndSortMoves(rng, false);
+                game.sim->uniformPriors(rng);
               }
 
               const int i = game.sim->selectChild(false, coefs_explore);  // TODO should I use coef_unvisited?
@@ -306,10 +372,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 child->board.doDraw(child->move);
                 if (child->board.is_player_turn) {
                   child->populateDraw();
-                  for (int j = 0; j < child->moves.size(); ++j) {
-                    child->priors.push_back(1);
-                  }
-                  child->normalizePriorsAndSortMoves(rng, false);
+                  child->uniformPriors(rng);
                 }
                 game.sim->children.push_back(child);
                 stack.push_back(child);
@@ -351,10 +414,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 child->board.doDraw(child->move);
                 if (child->board.is_player_turn) {
                   child->populateDraw();
-                  for (int j = 0; j < child->moves.size(); ++j) {
-                    child->priors.push_back(1);
-                  }
-                  child->normalizePriorsAndSortMoves(rng, false);
+                  child->uniformPriors(rng);
                 }
                 leaf->children.push_back(child);
                 stack.push_back(child);
@@ -484,12 +544,17 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             game.stack.clear();
           }
         }
-      } else {
-        std::shared_ptr<Node> leaf = game.stack.empty() ? game.root : game.stack.back();
-        for (const int move : leaf->moves) {
-          leaf->priors.push_back(expf(output_policy[offset + move]));
+      } else if (game.stack.empty()) {
+        for (const int move : game.root->moves) {
+          game.root->priors.push_back(output_policy[offset + move]);
         }
-        leaf->normalizePriorsAndSortMoves(rng, !game.stack.empty());
+        game.root->logitsToPriors(rng, true);
+      } else {
+        std::shared_ptr<Node> leaf = game.stack.back();
+        for (const int move : leaf->moves) {
+          leaf->priors.push_back(output_policy[offset + move]);
+        }
+        leaf->logitsToPriors(rng, false);
       }
 
       // here begins the state machine from hell
@@ -524,9 +589,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               }
             } else {
               if (game.root->board.placements_until_draw == 0) {
-                game.doDraw(game.root->children[0]);
+                game.doDraw(rng, game.root->children[0]);
               } else {
-                game.doPlace(game.root->children[0]);
+                game.doPlace(rng, game.root->children[0]);
               }
             }
             continue;
@@ -558,9 +623,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           }
 
           if (game.root->board.placements_until_draw == 0) {
-            game.doDraw(child);
+            game.doDraw(rng, child);
           } else {
-            game.doPlace(child);
+            game.doPlace(rng, child);
           }
           continue;
         }  // end if (game.stack.empty())

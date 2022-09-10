@@ -20,6 +20,7 @@ include_directories(${ZLIB_INCLUDE_DIRS})
 
 add_executable(tinybot
         cnpy/cnpy.cpp
+        dirichlet/dirichlet.cpp
         pcg/pcg_uint128.cpp
         pcg/pcg_extras.cpp
         pcg/pcg_random.cpp
