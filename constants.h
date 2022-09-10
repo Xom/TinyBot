@@ -20,10 +20,10 @@ static constexpr double kNoiseTotal = 10.83;
 
 static constexpr int kSearchThresholds[12]{8, 12, 12, 12,
                                            8, 24, 24, 24,
-                                           16, 36, 36, 36};
-static constexpr double kCoefsExplore[12]{20.0, 20.0, 20.0, 20.0,
-                                          20.0, 20.0, 20.0, 20.0,
-                                          20.0, 20.0, 20.0, 20.0};  // proportional to game score stdev / branching factor
+                                           20, 36, 36, 36};
+static constexpr double kCoefsExplore[12]{32.0, 32.0, 32.0, 32.0,
+                                          32.0, 32.0, 32.0, 32.0,
+                                          32.0, 32.0, 32.0, 32.0};  // proportional to game score stdev / branching factor
 enum BoardPhase { kPhase0a,
                   kPhase0b,
                   kPhase0c,

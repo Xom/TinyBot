@@ -124,6 +124,9 @@ void Node::noisifyPriors(pcg32& rng, const bool do_temperature) {
 void Node::sortMoves() {
   const int begin_index = children.size();
   const int end_index = priors.size();
+  if (begin_index == end_index) {
+    return;
+  }
   const int count = end_index - begin_index;
   std::vector<int> perm;
   for (int i = begin_index; i < end_index; ++i) {
@@ -220,6 +223,7 @@ void Game::doPlace(const int move) {
 }
 
 void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child) {
+  reportVisits();
   root = std::move(child);
   const int z = root->move % 81;
   const int t = root->move / 81;
@@ -249,6 +253,7 @@ void Game::doDraw(const int move) {
 }
 
 void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child) {
+  reportVisits();
   root = std::move(child);
   if (root->move == kMovePass) {
     record.push_back(' ');
@@ -262,17 +267,27 @@ void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child) {
   sim_stream += root->visits;
 }
 
+void Game::reportVisits() {
+  record.push_back('{');
+  const int n = root->children.size();
+  for (int i = 0; i < n; ++i) {
+    const int v = root->children[i]->visits;
+    if (v > 1) {
+      record += intToString(root->moves[i]);
+      record.push_back(':');
+      record += intToString(v);
+      record.push_back(',');
+    }
+  }
+  record.push_back('}');
+}
+
 void Game::start(pcg32& rng, IDeck& deck) {
   reset();
-  int r = rng(1 << 24);
-  while (random_moves < r % 8) {
+  random_moves = rng(8);
+  for (int i = 0; i < random_moves; ++i) {
     doOffer(rng, deck);
     doPlace(root->moves[rng(root->moves.size())]);
-    ++random_moves;
-    if (random_moves == 7) {
-      break;
-    }
-    r /= 8;
   }
   doOffer(rng, deck);
 }
@@ -330,7 +345,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
     coefs_explore[i] = kCoefsExplore[i];
   }
 
-  //  searchExperiment(thread_id, search_thresholds, coefs_explore);
+  searchExperiment(thread_id, search_thresholds, coefs_explore);
   std::cout << threadInfo(filename, thread_id, search_thresholds, coefs_explore);
 
   std::exponential_distribution<> expd{1};
@@ -454,12 +469,14 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           } while (game.sim->board.is_player_turn);
 
           game.sim->board.calculateScore();
-          //          ++debug_counter;
-          //          debug_score += game.sim->board.score[8];
-          //          if (rng(1024) == 0) {
-          //            std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
-          //            game.sim->board.display();
-          //            std::cout << debug_counter << ": " << static_cast<float>(debug_score) / static_cast<float>(debug_counter) << "\n";
+          //          if (game.root->board.placements_until_draw == 9) {
+          //            ++debug_counter;
+          //            debug_score += game.sim->board.score[8];
+          ////            if (rng(1024) == 0) {
+          //              std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
+          //              game.sim->board.display();
+          //              std::cout << debug_counter << ": " << static_cast<float>(debug_score) / static_cast<float>(debug_counter) << "\n";
+          ////            }
           //          }
           const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
           for (auto& node : game.stack) {

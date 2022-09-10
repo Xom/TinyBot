@@ -61,6 +61,7 @@ class Game {
   void doPlace(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
   void doDraw(int move);
   void doDraw(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
+  void reportVisits();
   void start(pcg32& rng, IDeck& deck);
   void restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
 
