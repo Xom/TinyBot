@@ -17,12 +17,12 @@ static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinit
 static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 
-static constexpr int kSearchThresholds[12]{12, 32, 32, 32,
-                                           12, 32, 32, 32,
-                                           12, 32, 32, 32};
-static constexpr double kCoefsExplore[12]{40.0, 40.0, 40.0, 40.0,
-                                          40.0, 40.0, 40.0, 40.0,
-                                          40.0, 40.0, 40.0, 40.0};  // proportional to game score stdev / branching factor
+static constexpr int kSearchThresholds[12]{4, 12, 12, 12,
+                                           4, 24, 24, 24,
+                                           16, 36, 36, 36};
+static constexpr double kCoefsExplore[12]{20.0, 20.0, 20.0, 20.0,
+                                          20.0, 20.0, 20.0, 20.0,
+                                          20.0, 20.0, 20.0, 20.0};  // proportional to game score stdev / branching factor
 enum BoardPhase { kPhase0a,
                   kPhase0b,
                   kPhase0c,
@@ -171,6 +171,8 @@ static constexpr float kDrawPriority[17][81] = {
 static constexpr float kDrawForbidden = 0.0;
 static constexpr float kDrawUnavailable = 0.25;
 static constexpr int kDrawFlag = 4;
+
+void searchExperiment(int thread_id, int* search_thresholds, double* coefs_explore);
 
 int parseX(char c);
 int parseY(char c);

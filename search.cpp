@@ -240,29 +240,8 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
     search_thresholds[i] = kSearchThresholds[i];
     coefs_explore[i] = kCoefsExplore[i];
   }
-  switch (thread_id) {
-    case 4:
-      search_thresholds[kPhase0b] = 24;
-      search_thresholds[kPhase0c] = 24;
-      search_thresholds[kPhase0d] = 24;
-      break;
-    case 5:
-      search_thresholds[kPhase0a] = 8;
-      break;
-    case 6:
-      search_thresholds[kPhase1a] = 8;
-      break;
-    case 7:
-      search_thresholds[kPhase2a] = 8;
-      break;
-//    case 7:
-//      for (double& d : coefs_explore) {
-//        d = 40.0;
-//      }
-//      break;
-    default:
-      break;
-  }
+
+//  searchExperiment(thread_id, search_thresholds, coefs_explore);
   std::cout << threadInfo(filename, thread_id, search_thresholds, coefs_explore);
 
   std::exponential_distribution<> expd{1};
