@@ -3,46 +3,6 @@
 namespace tinybot {
 
 int npy(const bool legacy_data) {
-  {
-    std::ifstream ifile;
-    ifile.open("input_local.npy");
-    if (ifile) {
-      std::cerr << "Error: input_local.npy already exists\n";
-      return 1;
-    }
-  }
-  {
-    std::ifstream ifile;
-    ifile.open("input_global.npy");
-    if (ifile) {
-      std::cerr << "Error: input_global.npy already exists\n";
-      return 1;
-    }
-  }
-  {
-    std::ifstream ifile;
-    ifile.open("output_policy.npy");
-    if (ifile) {
-      std::cerr << "Error: output_policy.npy already exists\n";
-      return 1;
-    }
-  }
-  {
-    std::ifstream ifile;
-    ifile.open("output_land.npy");
-    if (ifile) {
-      std::cerr << "Error: output_land.npy already exists\n";
-      return 1;
-    }
-  }
-  {
-    std::ifstream ifile;
-    ifile.open("output_value.npy");
-    if (ifile) {
-      std::cerr << "Error: output_value.npy already exists\n";
-      return 1;
-    }
-  }
   std::vector<float> input_local;
   std::vector<float> input_global;
   std::vector<float> output_policy;
@@ -156,6 +116,9 @@ int npy(const bool legacy_data) {
             cursor += 2;
           }
         }
+        if (total == 1) {
+          board.display();
+        }
       } else if (i < 37) {
         if (i % 2 == 1) {
           board.doOffer(deck, nullptr);
@@ -237,6 +200,9 @@ int npy(const bool legacy_data) {
             }
             cursor += 2;
           }
+        }
+        if (total == 1) {
+          board.display();
         }
       } else if (i < 54) {
         if (i % 2 == 0) {
@@ -430,6 +396,49 @@ int npy(const bool legacy_data) {
         }
         for (int i = 0; i < rows; ++i) {
           output_value.insert(output_value.end(), float_score, float_score + 8);
+        }
+      }
+    }
+    if (total == 1) {
+      board.display();
+      {
+        std::ifstream ifile;
+        ifile.open("input_local.npy");
+        if (ifile) {
+          std::cerr << "Error: input_local.npy already exists\n";
+          return 1;
+        }
+      }
+      {
+        std::ifstream ifile;
+        ifile.open("input_global.npy");
+        if (ifile) {
+          std::cerr << "Error: input_global.npy already exists\n";
+          return 1;
+        }
+      }
+      {
+        std::ifstream ifile;
+        ifile.open("output_policy.npy");
+        if (ifile) {
+          std::cerr << "Error: output_policy.npy already exists\n";
+          return 1;
+        }
+      }
+      {
+        std::ifstream ifile;
+        ifile.open("output_land.npy");
+        if (ifile) {
+          std::cerr << "Error: output_land.npy already exists\n";
+          return 1;
+        }
+      }
+      {
+        std::ifstream ifile;
+        ifile.open("output_value.npy");
+        if (ifile) {
+          std::cerr << "Error: output_value.npy already exists\n";
+          return 1;
         }
       }
     }
