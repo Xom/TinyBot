@@ -9,7 +9,7 @@ namespace tinybot {
 
 static constexpr int kBatchSize = 256;
 static constexpr int kConcurrentInferences = 1;  // 2022-08-15: current code doesn't work for kConcurrentInferences > 1 because multiple execution contexts require multiple optimization profiles
-static constexpr int kConcurrentGames = kBatchSize * 2;
+static constexpr int kConcurrentGames = kBatchSize == 1 ? 1 : (kBatchSize * 2);
 static constexpr float kScoreDenom = 128.0f;
 static constexpr int kStuckPenaltyInt = 100;
 static constexpr double kStuckPenaltyDouble = static_cast<double>(kStuckPenaltyInt) / kScoreDenom;
@@ -17,10 +17,11 @@ static constexpr double kPositiveInfinity = std::numeric_limits<double>::infinit
 static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 static constexpr double kNoiseTotal = 10.83;
+static constexpr double kCoefForcedPlayout = 1.41421356;  // sqrt(2)
 
 static constexpr int kSearchThresholds[12]{8, 12, 12, 12,
-                                           8, 24, 24, 24,
-                                           20, 36, 36, 36};
+                                           12, 32, 32, 32,
+                                           32, 48, 48, 48};
 static constexpr double kCoefsExplore[12]{32.0, 32.0, 32.0, 32.0,
                                           32.0, 32.0, 32.0, 32.0,
                                           32.0, 32.0, 32.0, 32.0};  // proportional to game score stdev / branching factor

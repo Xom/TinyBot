@@ -1,6 +1,7 @@
 #ifndef TINYBOT_SEARCH_H
 #define TINYBOT_SEARCH_H
 
+#include <algorithm>
 #include <cmath>
 #include <ctime>
 #include <fstream>
@@ -58,10 +59,10 @@ class Game {
   void doOffer(pcg32& rng, IDeck& deck);
   void doPlace(int z, int t);
   void doPlace(int move);
-  void doPlace(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
+  void doPlace(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore);  // must use this version if child exists
   void doDraw(int move);
-  void doDraw(pcg32& rng, std::shared_ptr<Node> child);  // must use this version if child exists
-  void reportVisits();
+  void doDraw(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore);  // must use this version if child exists
+  void reportVisits(int selected_move, double* coefs_explore);
   void start(pcg32& rng, IDeck& deck);
   void restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
 

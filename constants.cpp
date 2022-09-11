@@ -5,39 +5,39 @@ namespace tinybot {
 const char* kTensorNames[kNumTensors]{"input_local", "input_global", "output_policy", "output_value", "output_land"};
 
 void searchExperiment(const int thread_id, int* search_thresholds, double* coefs_explore) {
-  switch (thread_id) {
-    case 1:
-      search_thresholds[kPhase0a] = 10;
-      break;
-    case 2:
-      search_thresholds[kPhase1a] = 10;
-      break;
-    case 3:
-      search_thresholds[kPhase2a] = 24;
-      break;
-    case 4:
-      search_thresholds[kPhase0b] = 16;
-      search_thresholds[kPhase0c] = 16;
-      search_thresholds[kPhase0d] = 16;
-      break;
-    case 5:
-      search_thresholds[kPhase1b] = 32;
-      search_thresholds[kPhase1c] = 32;
-      search_thresholds[kPhase1d] = 32;
-      break;
-    case 6:
-      search_thresholds[kPhase2b] = 48;
-      search_thresholds[kPhase2c] = 48;
-      search_thresholds[kPhase2d] = 48;
-      break;
-    case 7:
-      for (int i = 0; i < 12; ++i) {
-        coefs_explore[i] = 26.0;
-      }
-      break;
-    default:
-      break;
-  }
+//  switch (thread_id) {
+//    case 1:
+//      search_thresholds[kPhase0a] = 10;
+//      break;
+//    case 2:
+//      search_thresholds[kPhase1a] = 10;
+//      break;
+//    case 3:
+//      search_thresholds[kPhase2a] = 24;
+//      break;
+//    case 4:
+//      search_thresholds[kPhase0b] = 16;
+//      search_thresholds[kPhase0c] = 16;
+//      search_thresholds[kPhase0d] = 16;
+//      break;
+//    case 5:
+//      search_thresholds[kPhase1b] = 32;
+//      search_thresholds[kPhase1c] = 32;
+//      search_thresholds[kPhase1d] = 32;
+//      break;
+//    case 6:
+//      search_thresholds[kPhase2b] = 48;
+//      search_thresholds[kPhase2c] = 48;
+//      search_thresholds[kPhase2d] = 48;
+//      break;
+//    case 7:
+//      for (int i = 0; i < 12; ++i) {
+//        coefs_explore[i] = 26.0;
+//      }
+//      break;
+//    default:
+//      break;
+//  }
 }
 
 int parseX(const char c) {

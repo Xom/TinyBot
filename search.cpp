@@ -152,14 +152,19 @@ int Node::selectChild(const bool apply_coef_unvisited, double* coefs_explore) {
   //    return 0;
   //  }
   const double base_coef_explore = getCoefExplore(coefs_explore);
-  const double coef_explore = base_coef_explore * sqrt(static_cast<double>(visits));
+  const double sqrt_rv = sqrt(static_cast<double>(visits));
+  const double coef_explore = base_coef_explore * sqrt_rv;
   const double coef_unvisited = apply_coef_unvisited ? getCoefUnvisited(base_coef_explore) : 0;
+  const double coef_forced_playout = kCoefForcedPlayout * sqrt_rv;
   double p_explored = 0;
   int best_i = 0;
   double best_ucb = kNegativeInfinity;
   for (int i = 0; i < priors.size(); ++i) {
     if (i == children.size() || children[i]->visits == 0) {
       return (visits == 0 || sum / visits + coef_explore * priors[i] + coef_unvisited * sqrt(p_explored) > best_ucb) ? i : best_i;
+    }
+    if (int(coef_forced_playout * sqrt(priors[i])) > children[i]->visits) {
+      return i;
     }
     p_explored += priors[i];
     const auto& child = children[i];
@@ -222,8 +227,8 @@ void Game::doPlace(const int move) {
   doPlace(move % 81, move / 81);
 }
 
-void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child) {
-  reportVisits();
+void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore) {
+  reportVisits(child->move, coefs_explore);
   root = std::move(child);
   const int z = root->move % 81;
   const int t = root->move / 81;
@@ -252,8 +257,8 @@ void Game::doDraw(const int move) {
   // not sure whether I should modify visits; hopefully it's no big deal...
 }
 
-void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child) {
-  reportVisits();
+void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore) {
+  reportVisits(child->move, coefs_explore);
   root = std::move(child);
   if (root->move == kMovePass) {
     record.push_back(' ');
@@ -267,9 +272,44 @@ void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child) {
   sim_stream += root->visits;
 }
 
-void Game::reportVisits() {
-  record.push_back('{');
+void Game::reportVisits(const int selected_move, double* coefs_explore) {
   const int n = root->children.size();
+  if (n <= 1) {
+    return;
+  }
+  const double base_coef_explore = root->getCoefExplore(coefs_explore);
+  const double sqrt_rv = sqrt(static_cast<double>(root->visits));
+  const double coef_explore = base_coef_explore * sqrt_rv;
+  const double coef_forced_playout = kCoefForcedPlayout * sqrt_rv;
+
+  int selected_index;
+  double selected_cpuct;
+  for (int i = 0; i < n; ++i) {
+    const auto& child = root->children[i];
+    if (child->move == selected_move) {
+      selected_index = i;
+      selected_cpuct = child->sum / child->visits + coef_explore * root->priors[i] / (1.0 + child->visits);
+      break;
+    }
+  }
+
+  for (int i = 0; i < n; ++i) {
+    if (i == selected_index) {
+      continue;
+    }
+    const auto& child = root->children[i];
+    const double ev = child->sum / child->visits;
+    const double cep = coef_explore * root->priors[i];
+    const double vpp = 1.0 + child->visits;
+    if (ev + cep / vpp >= selected_cpuct) {
+      continue;
+    }
+    const double prune_cap = vpp - cep / (selected_cpuct - ev);
+    const double forced_playouts = coef_forced_playout * sqrt(root->priors[i]);
+    child->visits -= int(std::min(prune_cap, forced_playouts));
+  }
+
+  record.push_back('{');
   for (int i = 0; i < n; ++i) {
     const int v = root->children[i]->visits;
     if (v > 1) {
@@ -623,9 +663,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               }
             } else {
               if (game.root->board.placements_until_draw == 0) {
-                game.doDraw(rng, game.root->children[0]);
+                game.doDraw(rng, game.root->children[0], coefs_explore);
               } else {
-                game.doPlace(rng, game.root->children[0]);
+                game.doPlace(rng, game.root->children[0], coefs_explore);
               }
             }
             continue;
@@ -657,9 +697,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           }
 
           if (game.root->board.placements_until_draw == 0) {
-            game.doDraw(rng, child);
+            game.doDraw(rng, child, coefs_explore);
           } else {
-            game.doPlace(rng, child);
+            game.doPlace(rng, child, coefs_explore);
           }
           continue;
         }  // end if (game.stack.empty())
