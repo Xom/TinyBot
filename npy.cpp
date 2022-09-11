@@ -80,180 +80,246 @@ int npy(const bool legacy_data) {
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = parseX(tokens[i][1]);
-          const int y = parseY(tokens[i][2]);
-          const int t = parseTile(tokens[i][0]);
+          int cursor = 0;
+          const bool has_distribution = tokens[i][cursor] == '{';
+          if (has_distribution) {
+            insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
+          }
+          const int x = parseX(tokens[i][cursor + 1]);
+          const int y = parseY(tokens[i][cursor + 2]);
+          const int t = parseTile(tokens[i][cursor]);
           board.doPlace(y * 9 + x, t);
-          insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          if (!has_distribution) {
+            insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          }
         }
       } else if (i == 18) {
-        if (!legacy_data) {
-          const int first_x = parseX(tokens[i][0]);
-          const int first_y = parseY(tokens[i][1]);
-          const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z + 648] < 0.5f) {
-            found_problem = true;
-            break;
+        if (legacy_data) {
+          std::vector<int> zz;
+          for (int j = 0; j < tokens[i].size(); j += 2) {
+            zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
           }
-          insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(first_z);
-          insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
-        }
-        std::vector<int> zz;
-        for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
-        }
-        while (!zz.empty()) {
-          float best = board.input_local[zz[0] + 648];
-          int best_j = 0;
-          for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] + 648];
-            if (p > best) {
-              best = p;
-              best_j = j;
+          while (!zz.empty()) {
+            float best = board.input_local[zz[0] + 648];
+            int best_j = 0;
+            for (int j = 1; j < zz.size(); ++j) {
+              const float p = board.input_local[zz[j] + 648];
+              if (p > best) {
+                best = p;
+                best_j = j;
+              }
             }
-          }
-          if (best < 0.5f) {
-            found_problem = true;
-            break;
+            if (best < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(zz[best_j]);
+            insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
+            zz[best_j] = zz.back();
+            zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(zz[best_j]);
-          insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
-          zz[best_j] = zz.back();
-          zz.pop_back();
+          board.doDraw(kMovePass);
+          insert_output_policy_pass(output_policy_tmp, symmetry_output);
+        } else {
+          int cursor = 0;
+          while (true) {
+            const bool has_distribution = tokens[i][cursor] == '{';
+            if (has_distribution) {
+              insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
+            }
+            if (cursor == tokens[i].size()) {
+              insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              board.doDraw(kMovePass);
+              if (!has_distribution) {
+                insert_output_policy_pass(output_policy_tmp, symmetry_output);
+              }
+              break;
+            }
+            const int x = parseX(tokens[i][cursor]);
+            const int y = parseY(tokens[i][cursor + 1]);
+            const int z = y * 9 + x;
+            if (board.input_local[z + 648] < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(z);
+            if (!has_distribution) {
+              insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
+            }
+            cursor += 2;
+          }
         }
-        if (found_problem && !legacy_data) {
-          break;
-        }
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        board.doDraw(kMovePass);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 37) {
         if (i % 2 == 1) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = parseX(tokens[i][1]);
-          const int y = parseY(tokens[i][2]);
-          const int t = parseTile(tokens[i][0]);
+          int cursor = 0;
+          const bool has_distribution = tokens[i][cursor] == '{';
+          if (has_distribution) {
+            insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
+          }
+          const int x = parseX(tokens[i][cursor + 1]);
+          const int y = parseY(tokens[i][cursor + 2]);
+          const int t = parseTile(tokens[i][cursor]);
           board.doPlace(y * 9 + x, t);
-          insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          if (!has_distribution) {
+            insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          }
         }
       } else if (i == 37) {
-        if (!legacy_data) {
-          const int first_x = parseX(tokens[i][0]);
-          const int first_y = parseY(tokens[i][1]);
-          const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z + 648] < 0.5f) {
-            found_problem = true;
-            if (board.land[first_z] != 0 && (first_x == 0 || first_x == 8 || first_y == 0 || first_y == 8)) {
-              illegal_lake = true;
+        if (legacy_data) {
+          std::vector<int> zz;
+          for (int j = 0; j < tokens[i].size(); j += 2) {
+            zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
+          }
+          while (!zz.empty()) {
+            float best = board.input_local[zz[0] + 648];
+            int best_j = 0;
+            for (int j = 1; j < zz.size(); ++j) {
+              const float p = board.input_local[zz[j] + 648];
+              if (p > best) {
+                best = p;
+                best_j = j;
+              }
             }
-            break;
+            if (best < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(zz[best_j]);
+            insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
+            zz[best_j] = zz.back();
+            zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(first_z);
-          insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
-        }
-        std::vector<int> zz;
-        for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
-        }
-        while (!zz.empty()) {
-          float best = board.input_local[zz[0] + 648];
-          int best_j = 0;
-          for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] + 648];
-            if (p > best) {
-              best = p;
-              best_j = j;
+          board.doDraw(kMovePass);
+          insert_output_policy_pass(output_policy_tmp, symmetry_output);
+        } else {
+          int cursor = 0;
+          while (true) {
+            const bool has_distribution = tokens[i][cursor] == '{';
+            if (has_distribution) {
+              insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
             }
+            if (cursor == tokens[i].size()) {
+              insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              board.doDraw(kMovePass);
+              if (!has_distribution) {
+                insert_output_policy_pass(output_policy_tmp, symmetry_output);
+              }
+              break;
+            }
+            const int x = parseX(tokens[i][cursor]);
+            const int y = parseY(tokens[i][cursor + 1]);
+            const int z = y * 9 + x;
+            if (board.input_local[z + 648] < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(z);
+            if (!has_distribution) {
+              insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
+            }
+            cursor += 2;
           }
-          if (best < 0.5f) {
-            found_problem = true;
-            break;
-          }
-          insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(zz[best_j]);
-          insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
-          zz[best_j] = zz.back();
-          zz.pop_back();
         }
-        if (found_problem && !legacy_data) {
-          break;
-        }
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        board.doDraw(kMovePass);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else if (i < 54) {
         if (i % 2 == 0) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
         } else {
-          const int x = parseX(tokens[i][1]);
-          const int y = parseY(tokens[i][2]);
-          const int t = parseTile(tokens[i][0]);
+          int cursor = 0;
+          const bool has_distribution = tokens[i][cursor] == '{';
+          if (has_distribution) {
+            insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
+          }
+          const int x = parseX(tokens[i][cursor + 1]);
+          const int y = parseY(tokens[i][cursor + 2]);
+          const int t = parseTile(tokens[i][cursor]);
           board.doPlace(y * 9 + x, t);
-          insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          if (!has_distribution) {
+            insert_output_policy(output_policy_tmp, x, y, t, symmetry_output);
+          }
         }
       } else if (i == 54) {
-        if (!legacy_data) {
-          const int first_x = parseX(tokens[i][0]);
-          const int first_y = parseY(tokens[i][1]);
-          const int first_z = first_y * 9 + first_x;
-          if (board.input_local[first_z + 648] < 0.5f) {
-            found_problem = true;
-            if (board.land[first_z] != 0 && (first_x == 0 || first_x == 8 || first_y == 0 || first_y == 8)) {
-              illegal_lake = true;
+        if (legacy_data) {
+          std::vector<int> zz;
+          for (int j = 0; j < tokens[i].size(); j += 2) {
+            zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
+          }
+          while (!zz.empty()) {
+            float best = board.input_local[zz[0] + 648];
+            int best_j = 0;
+            for (int j = 1; j < zz.size(); ++j) {
+              const float p = board.input_local[zz[j] + 648];
+              if (p > best) {
+                best = p;
+                best_j = j;
+              }
             }
-            break;
+            if (best < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(zz[best_j]);
+            insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
+            zz[best_j] = zz.back();
+            zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
           input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(first_z);
-          insert_output_policy(output_policy_tmp, first_x, first_y, 0, symmetry_output);
-        }
-        std::vector<int> zz;
-        for (int j = legacy_data ? 0 : 2; j < tokens[i].size(); j += 2) {
-          zz.push_back(parseY(tokens[i][j + 1]) * 9 + parseX(tokens[i][j]));
-        }
-        while (!zz.empty()) {
-          float best = board.input_local[zz[0] + 648];
-          int best_j = 0;
-          for (int j = 1; j < zz.size(); ++j) {
-            const float p = board.input_local[zz[j] + 648];
-            if (p > best) {
-              best = p;
-              best_j = j;
+          board.doDraw(kMovePass);
+          insert_output_policy_pass(output_policy_tmp, symmetry_output);
+        } else {
+          int cursor = 0;
+          while (true) {
+            const bool has_distribution = tokens[i][cursor] == '{';
+            if (has_distribution) {
+              insert_output_policy(output_policy_tmp, tokens[i], cursor, symmetry_output);
             }
+            if (cursor == tokens[i].size()) {
+              insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              board.doDraw(kMovePass);
+              if (!has_distribution) {
+                insert_output_policy_pass(output_policy_tmp, symmetry_output);
+              }
+              break;
+            }
+            const int x = parseX(tokens[i][cursor]);
+            const int y = parseY(tokens[i][cursor + 1]);
+            const int z = y * 9 + x;
+            if (board.input_local[z + 648] < 0.5f) {
+              found_problem = true;
+              break;
+            }
+            insert_input_local(input_local_tmp, board.input_local, symmetry_input);
+            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            board.doDraw(z);
+            if (!has_distribution) {
+              insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
+            }
+            cursor += 2;
           }
-          if (best < 0.5f) {
-            found_problem = true;
-            break;
-          }
-          insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-          board.doDraw(zz[best_j]);
-          insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
-          zz[best_j] = zz.back();
-          zz.pop_back();
         }
-        if (found_problem && !legacy_data) {
-          break;
-        }
-        insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-        input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
-        board.doDraw(kMovePass);
-        insert_output_policy_pass(output_policy_tmp, symmetry_output);
       } else {
         if (legacy_data) {
           score[8] = atoi(tokens[i].c_str());
@@ -447,6 +513,112 @@ void insert_input_local(std::vector<float>& input_local_tmp, float* input_local,
     default:
       input_local_tmp.insert(input_local_tmp.end(), input_local, input_local + kTensorLengths[kInputLocal]);
       break;
+  }
+  ++symmetry;
+}
+
+void insert_output_policy(std::vector<float>& output_policy_tmp, std::string& str, int& cursor, int& symmetry) {
+  std::vector<int> moves;
+  std::vector<int> priors;
+  int sum_p = 0;
+  int n = 0;
+  bool more = true;
+  do {
+    ++cursor;
+    switch (str[cursor]) {
+      case ':':
+        moves.push_back(n);
+        n = 0;
+        break;
+      case ',':
+        sum_p += n;
+        priors.push_back(n);
+        n = 0;
+        break;
+      case '0':
+        n *= 10;
+        break;
+      case '1':
+        n = n * 10 + 1;
+        break;
+      case '2':
+        n = n * 10 + 2;
+        break;
+      case '3':
+        n = n * 10 + 3;
+        break;
+      case '4':
+        n = n * 10 + 4;
+        break;
+      case '5':
+        n = n * 10 + 5;
+        break;
+      case '6':
+        n = n * 10 + 6;
+        break;
+      case '7':
+        n = n * 10 + 7;
+        break;
+      case '8':
+        n = n * 10 + 8;
+        break;
+      case '9':
+        n = n * 10 + 9;
+        break;
+      default:
+        more = false;
+        break;
+    }
+  } while (more);
+  ++cursor;
+
+  const auto offset = output_policy_tmp.size();
+  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
+  n = moves.size();
+  const float multiplicand = 1.0f / static_cast<float>(sum_p);
+  for (int i = 0; i < n; ++i) {
+    if (moves[i] != kMovePass) {
+      const int x = moves[i] % 9;
+      const int y = (moves[i] % 81) / 9;
+      const int t = moves[i] / 81;
+      int xx, yy;
+      switch (symmetry % 8) {
+        case 1:
+          xx = 8 - x;
+          yy = 8 - y;
+          break;
+        case 2:
+          xx = y;
+          yy = 8 - x;
+          break;
+        case 3:
+          xx = 8 - y;
+          yy = x;
+          break;
+        case 4:
+          xx = y;
+          yy = x;
+          break;
+        case 5:
+          xx = 8 - y;
+          yy = 8 - x;
+          break;
+        case 6:
+          xx = x;
+          yy = 8 - y;
+          break;
+        case 7:
+          xx = 8 - x;
+          yy = y;
+          break;
+        default:
+          xx = x;
+          yy = y;
+          break;
+      }
+      moves[i] = t * 81 + yy * 9 + xx;
+    }
+    output_policy_tmp[offset + moves[i]] = static_cast<float>(priors[i]) * multiplicand;
   }
   ++symmetry;
 }
