@@ -22,9 +22,9 @@ static constexpr double kCoefForcedPlayout = 1.41421356;  // sqrt(2)
 static constexpr int kSearchThresholds[12]{8, 12, 12, 12,
                                            12, 32, 32, 32,
                                            32, 48, 48, 48};
-static constexpr double kCoefsExplore[12]{32.0, 32.0, 32.0, 32.0,
-                                          32.0, 32.0, 32.0, 32.0,
-                                          32.0, 32.0, 32.0, 32.0};  // proportional to game score stdev / branching factor
+static constexpr double kCoefsExplore[12]{26.0, 26.0, 26.0, 26.0,
+                                          26.0, 26.0, 26.0, 26.0,
+                                          26.0, 26.0, 26.0, 26.0};  // proportional to game score stdev / branching factor
 enum BoardPhase { kPhase0a,
                   kPhase0b,
                   kPhase0c,
