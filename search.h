@@ -86,7 +86,6 @@ class SearchManager {
   static unsigned long stringToSeed(const std::string& filename);
   std::string threadInfo(const std::string& filename, int thread_id, const int* search_thresholds, const double* coefs_explore) const;
   [[noreturn]] void search(const std::string& filename, int thread_id) const;
-  //  [[noreturn]] void searchPurePolicy(const std::string& filename) const;
   void run();
 
  private:

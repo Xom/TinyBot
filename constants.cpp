@@ -7,36 +7,30 @@ const char* kTensorNames[kNumTensors]{"input_local", "input_global", "output_pol
 void searchExperiment(const int thread_id, int* search_thresholds, double* coefs_explore) {
   switch (thread_id) {
     case 1:
-      search_thresholds[kPhase1a] = 10;
+      search_thresholds[kPhase0a] = 16;
       break;
     case 2:
-      search_thresholds[kPhase0b] = 10;
-      search_thresholds[kPhase0c] = 10;
-      search_thresholds[kPhase0d] = 10;
+      search_thresholds[kPhase1a] = 16;
       break;
     case 3:
-      search_thresholds[kPhase1b] = 28;
-      search_thresholds[kPhase1c] = 28;
-      search_thresholds[kPhase1d] = 28;
+      search_thresholds[kPhase2a] = 16;
       break;
     case 4:
-      for (int i = 0; i < 12; ++i) {
-        coefs_explore[i] = 20.0;
-      }
+      search_thresholds[kPhase0b] = 16;
+      search_thresholds[kPhase0c] = 16;
+      search_thresholds[kPhase0d] = 16;
       break;
     case 5:
-      for (int i = 0; i < 12; ++i) {
-        coefs_explore[i] = 23.0;
-      }
+      search_thresholds[kPhase1b] = 16;
+      search_thresholds[kPhase1c] = 16;
+      search_thresholds[kPhase1d] = 16;
       break;
     case 6:
-      for (int i = 0; i < 12; ++i) {
-        coefs_explore[i] = 29.0;
-      }
+      search_thresholds[kPhase2a] = 48;
       break;
     case 7:
       for (int i = 0; i < 12; ++i) {
-        coefs_explore[i] = 32.0;
+        coefs_explore[i] = 22;
       }
       break;
     default:

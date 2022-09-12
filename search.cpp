@@ -509,7 +509,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           } while (game.sim->board.is_player_turn);
 
           game.sim->board.calculateScore();
-          //          if (game.root->board.placements_until_draw == 9) {
+          //          if (game.root->board.placements_remaining == 26) {
           //            ++debug_counter;
           //            debug_score += game.sim->board.score[8];
           ////            if (rng(1024) == 0) {

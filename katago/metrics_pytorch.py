@@ -45,13 +45,13 @@ class Metrics:
         assert pred.shape == (self.n, 8)
         assert target.shape == (self.n, 8)
         loss = torch.sum(torch.square(pred - target), dim=1)
-        return loss * 64
+        return loss * 32
 
     def loss_ownership_samplewise(self, pred_pretanh, target):
         assert pred_pretanh.shape == (self.n, 1, 9, 9)
         assert target.shape == (self.n, 1, 9, 9)
         loss = torch.sum(torch.nn.functional.binary_cross_entropy_with_logits(pred_pretanh, target, reduction='none'), dim=[1,2,3])
-        return loss * 0.015625
+        return loss * 0.0078125
 
     def target_entropy(self, target_probs):
         return -torch.sum(torch.sum(target_probs * torch.log(target_probs + 1e-30), dim=-1))
