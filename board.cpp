@@ -49,7 +49,7 @@ void Board::displayInputs() {
 int Board::phase() const {
   switch (placements_until_draw) {
     case 0:
-      return drawings_completed * 4 + (ink == 2 ? 2 : 3);
+//      return drawings_completed * 4 + (ink == 2 ? 2 : 3);
     case 1:
       return drawings_completed * 4 + 1;
     default:

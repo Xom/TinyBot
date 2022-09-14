@@ -364,10 +364,14 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
   std::stringstream ss;
   ss << thread_id << ' ' << filename;
   for (int i = 0; i < 12; ++i) {
-    ss << ' ' << search_thresholds[i];
+    if (i % 4 <= 1) {
+      ss << ' ' << search_thresholds[i];
+    }
   }
   for (int i = 0; i < 12; ++i) {
-    ss << ' ' << coefs_explore[i];
+    if (i % 4 <= 1) {
+      ss << ' ' << coefs_explore[i];
+    }
   }
   ss << "\n";
   return ss.str();
@@ -532,34 +536,34 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           const bool drawing = game.sim->board.placements_until_draw == 0;
           const int n = game.sim->priors.size();
           int random_i = 0;
-//          if (drawing) {
-//            double r = static_cast<double>(game.sim_rng_draw()) / kPcg32MaxDouble;
-//            for (int i = 0; i < n; ++i) {
-//              if (r < game.sim->priors[i]) {
-//                random_i = i;
-//                break;
-//              }
-//              r -= game.sim->priors[i];
-//            }
-//          } else {
-//            //                        double r = static_cast<double>(game.sim_rng_place()) / kPcg32MaxDouble;
-//            //                        for (int i = 0; i < n; ++i) {
-//            //                          if (r < game.sim->priors[i]) {
-//            //                            random_i = i;
-//            //                            break;
-//            //                          }
-//            //                          r -= game.sim->priors[i];
-//            //                        }
-//            double best = kPositiveInfinity;
-//            for (int i = 0; i < n; ++i) {
-//              pcg32 move_rng{game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + game.sim->moves[i]};
-//              const double proj = expd(move_rng) / game.sim->priors[i];
-//              if (proj < best) {
-//                best = proj;
-//                random_i = i;
-//              }
-//            }
-//          }
+          //          if (drawing) {
+          //            double r = static_cast<double>(game.sim_rng_draw()) / kPcg32MaxDouble;
+          //            for (int i = 0; i < n; ++i) {
+          //              if (r < game.sim->priors[i]) {
+          //                random_i = i;
+          //                break;
+          //              }
+          //              r -= game.sim->priors[i];
+          //            }
+          //          } else {
+          //            //                        double r = static_cast<double>(game.sim_rng_place()) / kPcg32MaxDouble;
+          //            //                        for (int i = 0; i < n; ++i) {
+          //            //                          if (r < game.sim->priors[i]) {
+          //            //                            random_i = i;
+          //            //                            break;
+          //            //                          }
+          //            //                          r -= game.sim->priors[i];
+          //            //                        }
+          //            double best = kPositiveInfinity;
+          //            for (int i = 0; i < n; ++i) {
+          //              pcg32 move_rng{game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + game.sim->moves[i]};
+          //              const double proj = expd(move_rng) / game.sim->priors[i];
+          //              if (proj < best) {
+          //                best = proj;
+          //                random_i = i;
+          //              }
+          //            }
+          //          }
           game.sim->priors.clear();
           if (drawing) {
             game.sim->board.doDraw(game.sim->moves[random_i]);
