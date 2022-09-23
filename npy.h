@@ -17,6 +17,7 @@ namespace tinybot {
 
 int npy(bool legacy_data);
 void insert_input_local(std::vector<float>& input_local_tmp, float* input_local, int& symmetry);
+void insert_input_global(std::vector<float>& input_global_tmp, float* input_global);
 void insert_output_policy(std::vector<float>& output_policy_tmp, std::string& str, int& cursor, int& symmetry);
 void insert_output_policy(std::vector<float>& output_policy_tmp, int x, int y, int t, int& symmetry);
 void insert_output_policy_pass(std::vector<float>& output_policy_tmp, int& symmetry);

@@ -324,11 +324,11 @@ void Game::reportVisits(const int selected_move, double* coefs_explore) {
 
 void Game::start(pcg32& rng, IDeck& deck) {
   reset();
-  random_moves = rng(8);
-  for (int i = 0; i < random_moves; ++i) {
-    doOffer(rng, deck);
-    doPlace(root->moves[rng(root->moves.size())]);
-  }
+//  random_moves = rng(8);
+//  for (int i = 0; i < random_moves; ++i) {
+//    doOffer(rng, deck);
+//    doPlace(root->moves[rng(root->moves.size())]);
+//  }
   doOffer(rng, deck);
 }
 

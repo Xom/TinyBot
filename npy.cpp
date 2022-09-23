@@ -38,7 +38,7 @@ int npy(const bool legacy_data) {
         if (i % 2 == 0) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
         } else {
           int cursor = 0;
           const bool has_distribution = tokens[i][cursor] == '{';
@@ -74,14 +74,14 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(zz[best_j]);
             insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
             zz[best_j] = zz.back();
             zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
           board.doDraw(kMovePass);
           insert_output_policy_pass(output_policy_tmp, symmetry_output);
         } else {
@@ -93,7 +93,7 @@ int npy(const bool legacy_data) {
             }
             if (cursor == tokens[i].size()) {
               insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              insert_input_global(input_global_tmp, board.input_global);
               board.doDraw(kMovePass);
               if (!has_distribution) {
                 insert_output_policy_pass(output_policy_tmp, symmetry_output);
@@ -108,7 +108,7 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(z);
             if (!has_distribution) {
               insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
@@ -123,7 +123,7 @@ int npy(const bool legacy_data) {
         if (i % 2 == 1) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
         } else {
           int cursor = 0;
           const bool has_distribution = tokens[i][cursor] == '{';
@@ -159,14 +159,14 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(zz[best_j]);
             insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
             zz[best_j] = zz.back();
             zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
           board.doDraw(kMovePass);
           insert_output_policy_pass(output_policy_tmp, symmetry_output);
         } else {
@@ -178,7 +178,7 @@ int npy(const bool legacy_data) {
             }
             if (cursor == tokens[i].size()) {
               insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              insert_input_global(input_global_tmp, board.input_global);
               board.doDraw(kMovePass);
               if (!has_distribution) {
                 insert_output_policy_pass(output_policy_tmp, symmetry_output);
@@ -193,7 +193,7 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(z);
             if (!has_distribution) {
               insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
@@ -208,7 +208,7 @@ int npy(const bool legacy_data) {
         if (i % 2 == 0) {
           board.doOffer(deck, nullptr);
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
         } else {
           int cursor = 0;
           const bool has_distribution = tokens[i][cursor] == '{';
@@ -244,14 +244,14 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(zz[best_j]);
             insert_output_policy(output_policy_tmp, zz[best_j] % 9, zz[best_j] / 9, 0, symmetry_output);
             zz[best_j] = zz.back();
             zz.pop_back();
           }
           insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-          input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+          insert_input_global(input_global_tmp, board.input_global);
           board.doDraw(kMovePass);
           insert_output_policy_pass(output_policy_tmp, symmetry_output);
         } else {
@@ -263,7 +263,7 @@ int npy(const bool legacy_data) {
             }
             if (cursor == tokens[i].size()) {
               insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-              input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+              insert_input_global(input_global_tmp, board.input_global);
               board.doDraw(kMovePass);
               if (!has_distribution) {
                 insert_output_policy_pass(output_policy_tmp, symmetry_output);
@@ -278,7 +278,7 @@ int npy(const bool legacy_data) {
               break;
             }
             insert_input_local(input_local_tmp, board.input_local, symmetry_input);
-            input_global_tmp.insert(input_global_tmp.end(), board.input_global, board.input_global + kTensorLengths[kInputGlobal]);
+            insert_input_global(input_global_tmp, board.input_global);
             board.doDraw(z);
             if (!has_distribution) {
               insert_output_policy(output_policy_tmp, x, y, 0, symmetry_output);
@@ -372,7 +372,7 @@ int npy(const bool legacy_data) {
         }
       }
       if (tokens.size() == 65) {
-        const int skip = atoi(tokens[64].c_str());
+        const int skip = atoi(tokens[64].c_str()) * kRowsPerTurn;
         input_local.insert(input_local.end(), input_local_tmp.begin() + skip * kTensorLengths[kInputLocal], input_local_tmp.end());
         input_global.insert(input_global.end(), input_global_tmp.begin() + skip * kTensorLengths[kInputGlobal], input_global_tmp.end());
         output_policy.insert(output_policy.end(), output_policy_tmp.begin() + skip * kTensorLengths[kOutputPolicy], output_policy_tmp.end());
@@ -455,75 +455,83 @@ int npy(const bool legacy_data) {
 }
 
 void insert_input_local(std::vector<float>& input_local_tmp, float* input_local, int& symmetry) {
-  switch (symmetry % 8) {
-    case 1:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + 8 - xx]);
+  for (int r = 0; r < kRowsPerTurn; ++r) {
+    switch (symmetry % 8) {
+      case 1:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + 8 - xx]);
+            }
           }
         }
-      }
-      break;
-    case 2:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + xx * 9 + 8 - yy]);
+        break;
+      case 2:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + xx * 9 + 8 - yy]);
+            }
           }
         }
-      }
-      break;
-    case 3:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + yy]);
+        break;
+      case 3:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + yy]);
+            }
           }
         }
-      }
-      break;
-    case 4:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + xx * 9 + yy]);
+        break;
+      case 4:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + xx * 9 + yy]);
+            }
           }
         }
-      }
-      break;
-    case 5:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + 8 - yy]);
+        break;
+      case 5:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + (8 - xx) * 9 + 8 - yy]);
+            }
           }
         }
-      }
-      break;
-    case 6:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + xx]);
+        break;
+      case 6:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + (8 - yy) * 9 + xx]);
+            }
           }
         }
-      }
-      break;
-    case 7:
-      for (int c = 0; c < 21; ++c) {
-        for (int yy = 0; yy < 9; ++yy) {
-          for (int xx = 0; xx < 9; ++xx) {
-            input_local_tmp.push_back(input_local[c * 81 + yy * 9 + 8 - xx]);
+        break;
+      case 7:
+        for (int c = 0; c < 21; ++c) {
+          for (int yy = 0; yy < 9; ++yy) {
+            for (int xx = 0; xx < 9; ++xx) {
+              input_local_tmp.push_back(input_local[c * 81 + yy * 9 + 8 - xx]);
+            }
           }
         }
-      }
-      break;
-    default:
-      input_local_tmp.insert(input_local_tmp.end(), input_local, input_local + kTensorLengths[kInputLocal]);
-      break;
+        break;
+      default:
+        input_local_tmp.insert(input_local_tmp.end(), input_local, input_local + kTensorLengths[kInputLocal]);
+        break;
+    }
+    ++symmetry;
   }
-  ++symmetry;
+}
+
+void insert_input_global(std::vector<float>& input_global_tmp, float* input_global) {
+  for (int r = 0; r < kRowsPerTurn; ++r) {
+    input_global_tmp.insert(input_global_tmp.end(), input_global, input_global + kTensorLengths[kInputGlobal]);
+  }
 }
 
 void insert_output_policy(std::vector<float>& output_policy_tmp, std::string& str, int& cursor, int& symmetry) {
@@ -581,104 +589,111 @@ void insert_output_policy(std::vector<float>& output_policy_tmp, std::string& st
   } while (more);
   ++cursor;
 
-  const auto offset = output_policy_tmp.size();
-  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
   n = moves.size();
   const float multiplicand = 1.0f / static_cast<float>(sum_p);
-  for (int i = 0; i < n; ++i) {
-    if (moves[i] != kMovePass) {
-      const int x = moves[i] % 9;
-      const int y = (moves[i] % 81) / 9;
-      const int t = moves[i] / 81;
-      int xx, yy;
-      switch (symmetry % 8) {
-        case 1:
-          xx = 8 - x;
-          yy = 8 - y;
-          break;
-        case 2:
-          xx = y;
-          yy = 8 - x;
-          break;
-        case 3:
-          xx = 8 - y;
-          yy = x;
-          break;
-        case 4:
-          xx = y;
-          yy = x;
-          break;
-        case 5:
-          xx = 8 - y;
-          yy = 8 - x;
-          break;
-        case 6:
-          xx = x;
-          yy = 8 - y;
-          break;
-        case 7:
-          xx = 8 - x;
-          yy = y;
-          break;
-        default:
-          xx = x;
-          yy = y;
-          break;
+  for (int r = 0; r < kRowsPerTurn; ++r) {
+    const auto offset = output_policy_tmp.size();
+    output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
+    for (int i = 0; i < n; ++i) {
+      int m = moves[i];
+      if (m != kMovePass) {
+        const int x = m % 9;
+        const int y = (m % 81) / 9;
+        const int t = m / 81;
+        int xx, yy;
+        switch (symmetry % 8) {
+          case 1:
+            xx = 8 - x;
+            yy = 8 - y;
+            break;
+          case 2:
+            xx = y;
+            yy = 8 - x;
+            break;
+          case 3:
+            xx = 8 - y;
+            yy = x;
+            break;
+          case 4:
+            xx = y;
+            yy = x;
+            break;
+          case 5:
+            xx = 8 - y;
+            yy = 8 - x;
+            break;
+          case 6:
+            xx = x;
+            yy = 8 - y;
+            break;
+          case 7:
+            xx = 8 - x;
+            yy = y;
+            break;
+          default:
+            xx = x;
+            yy = y;
+            break;
+        }
+        m = t * 81 + yy * 9 + xx;
       }
-      moves[i] = t * 81 + yy * 9 + xx;
+      output_policy_tmp[offset + m] = static_cast<float>(priors[i]) * multiplicand;
     }
-    output_policy_tmp[offset + moves[i]] = static_cast<float>(priors[i]) * multiplicand;
+    ++symmetry;
   }
-  ++symmetry;
 }
 
 void insert_output_policy(std::vector<float>& output_policy_tmp, const int x, const int y, const int t, int& symmetry) {
-  int xx, yy;
-  switch (symmetry % 8) {
-    case 1:
-      xx = 8 - x;
-      yy = 8 - y;
-      break;
-    case 2:
-      xx = y;
-      yy = 8 - x;
-      break;
-    case 3:
-      xx = 8 - y;
-      yy = x;
-      break;
-    case 4:
-      xx = y;
-      yy = x;
-      break;
-    case 5:
-      xx = 8 - y;
-      yy = 8 - x;
-      break;
-    case 6:
-      xx = x;
-      yy = 8 - y;
-      break;
-    case 7:
-      xx = 8 - x;
-      yy = y;
-      break;
-    default:
-      xx = x;
-      yy = y;
-      break;
+  for (int r = 0; r < kRowsPerTurn; ++r) {
+    int xx, yy;
+    switch (symmetry % 8) {
+      case 1:
+        xx = 8 - x;
+        yy = 8 - y;
+        break;
+      case 2:
+        xx = y;
+        yy = 8 - x;
+        break;
+      case 3:
+        xx = 8 - y;
+        yy = x;
+        break;
+      case 4:
+        xx = y;
+        yy = x;
+        break;
+      case 5:
+        xx = 8 - y;
+        yy = 8 - x;
+        break;
+      case 6:
+        xx = x;
+        yy = 8 - y;
+        break;
+      case 7:
+        xx = 8 - x;
+        yy = y;
+        break;
+      default:
+        xx = x;
+        yy = y;
+        break;
+    }
+    const auto offset = output_policy_tmp.size();
+    output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
+    output_policy_tmp[offset + t * 81 + yy * 9 + xx] = 1.0f;
+    ++symmetry;
   }
-  const auto offset = output_policy_tmp.size();
-  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
-  output_policy_tmp[offset + t * 81 + yy * 9 + xx] = 1.0f;
-  ++symmetry;
 }
 
 void insert_output_policy_pass(std::vector<float>& output_policy_tmp, int& symmetry) {
-  const auto offset = output_policy_tmp.size();
-  output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
-  output_policy_tmp[offset + kMovePass] = 1.0f;
-  ++symmetry;
+  for (int r = 0; r < kRowsPerTurn; ++r) {
+    const auto offset = output_policy_tmp.size();
+    output_policy_tmp.insert(output_policy_tmp.end(), kTensorLengths[kOutputPolicy], 0.0f);
+    output_policy_tmp[offset + kMovePass] = 1.0f;
+    ++symmetry;
+  }
 }
 
 void insert_output_land(std::vector<float>& output_land_tmp, float* input_local, int& symmetry) {
