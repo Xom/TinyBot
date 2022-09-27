@@ -5,39 +5,39 @@ namespace tinybot {
 const char* kTensorNames[kNumTensors]{"input_local", "input_global", "output_policy", "output_value", "output_land"};
 
 void searchExperiment(const int thread_id, int* search_thresholds, double* coefs_explore) {
-  switch (thread_id) {
-//    case 1:
+//  switch (thread_id) {
+////    case 1:
+////      coefs_explore[kPhase0a] = 22.0;
+////      coefs_explore[kPhase1a] = 22.0;
+////      coefs_explore[kPhase2a] = 22.0;
+////      break;
+//    case 2:
+//      coefs_explore[kPhase0a] = 18.0;
+//      coefs_explore[kPhase1a] = 18.0;
+//      coefs_explore[kPhase2a] = 18.0;
+//      break;
+//    case 3:
 //      coefs_explore[kPhase0a] = 22.0;
 //      coefs_explore[kPhase1a] = 22.0;
 //      coefs_explore[kPhase2a] = 22.0;
 //      break;
-    case 2:
-      coefs_explore[kPhase0a] = 18.0;
-      coefs_explore[kPhase1a] = 18.0;
-      coefs_explore[kPhase2a] = 18.0;
-      break;
-    case 3:
-      coefs_explore[kPhase0a] = 22.0;
-      coefs_explore[kPhase1a] = 22.0;
-      coefs_explore[kPhase2a] = 22.0;
-      break;
-    case 4:
-      coefs_explore[kPhase0b] = 20.0;
-      coefs_explore[kPhase1b] = 20.0;
-      break;
-    case 5:
-      coefs_explore[kPhase0b] = 16.0;
-      coefs_explore[kPhase1b] = 16.0;
-      break;
-    case 6:
-      coefs_explore[kPhase2b] = 20.0;
-      break;
-    case 7:
-      coefs_explore[kPhase2b] = 16.0;
-      break;
-    default:
-      break;
-  }
+//    case 4:
+//      coefs_explore[kPhase0b] = 20.0;
+//      coefs_explore[kPhase1b] = 20.0;
+//      break;
+//    case 5:
+//      coefs_explore[kPhase0b] = 16.0;
+//      coefs_explore[kPhase1b] = 16.0;
+//      break;
+//    case 6:
+//      coefs_explore[kPhase2b] = 20.0;
+//      break;
+//    case 7:
+//      coefs_explore[kPhase2b] = 16.0;
+//      break;
+//    default:
+//      break;
+//  }
 }
 
 int parseX(const char c) {

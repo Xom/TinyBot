@@ -63,8 +63,8 @@ class Game {
   void doDraw(int move);
   void doDraw(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore);  // must use this version if child exists
   void reportVisits(int selected_move, double* coefs_explore);
-  void start(pcg32& rng, IDeck& deck);
-  void restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
+  void start(int thread_id, pcg32& rng, IDeck& deck);
+  void restart(int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
 
   std::shared_ptr<Node> root;
   std::shared_ptr<Node> sim;

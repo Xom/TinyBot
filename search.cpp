@@ -322,17 +322,17 @@ void Game::reportVisits(const int selected_move, double* coefs_explore) {
   record.push_back('}');
 }
 
-void Game::start(pcg32& rng, IDeck& deck) {
+void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
   reset();
-//  random_moves = rng(8);
-//  for (int i = 0; i < random_moves; ++i) {
-//    doOffer(rng, deck);
-//    doPlace(root->moves[rng(root->moves.size())]);
-//  }
+  random_moves = thread_id;
+  for (int i = 0; i < random_moves; ++i) {
+    doOffer(rng, deck);
+    doPlace(root->moves[rng(root->moves.size())]);
+  }
   doOffer(rng, deck);
 }
 
-void Game::restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, const bool stuck) {
+void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, const bool stuck) {
   sim_stream += root->visits;
   root->board.calculateScore();
   record += intToString(stuck ? kStuckPenaltyInt : root->board.score[0]);
@@ -346,7 +346,7 @@ void Game::restart(pcg32& rng, IDeck& deck, std::ofstream& out_file, const bool 
   record += intToString(random_moves);
   record += "\n";
   out_file << record << std::flush;
-  start(rng, deck);
+  start(thread_id, rng, deck);
 }
 
 SearchManager::SearchManager(const int st, const char* trt_filename)
@@ -399,7 +399,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
   for (Game& game : games) {
     ++original_seed;
     game.seed = original_seed;
-    game.start(rng, deck);
+    game.start(thread_id, rng, deck);
     game.ticket = inference_manager->request(game.root->board.input_local, game.root->board.input_global);
   }
 
@@ -640,7 +640,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
         if (game.stack.empty()) {
           if (!game.root->board.is_player_turn) {
             if (game.root->board.drawings_completed == 3) {
-              game.restart(rng, deck, out_file, false);
+              game.restart(thread_id, rng, deck, out_file, false);
               break;
             }
             game.doOffer(rng, deck);
@@ -651,7 +651,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           }
 
           if (game.root->moves.empty()) {
-            game.restart(rng, deck, out_file, true);
+            game.restart(thread_id, rng, deck, out_file, true);
             break;
           }
 
