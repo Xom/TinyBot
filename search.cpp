@@ -324,6 +324,7 @@ void Game::reportVisits(const int selected_move, double* coefs_explore) {
 
 void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
   reset();
+//  random_moves = std::min(rng(8), rng(8));
   random_moves = thread_id;
   for (int i = 0; i < random_moves; ++i) {
     doOffer(rng, deck);

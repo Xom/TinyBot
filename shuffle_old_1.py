@@ -1,16 +1,16 @@
 import numpy as np
 
-#npy_input_local = np.load('input_local.npy')
-#npy_input_global = np.load('input_global.npy')
-#npy_output_policy = np.load('output_policy.npy')
-#npy_output_value = np.load('output_value.npy')
-#npy_output_land = np.load('output_land.npy')
+npy_input_local = np.load('input_local.npy')
+npy_input_global = np.load('input_global.npy')
+npy_output_policy = np.load('output_policy.npy')
+npy_output_value = np.load('output_value.npy')
+npy_output_land = np.load('output_land.npy')
 
-npy_input_local = np.load('tb03v/input_local.npy')
-npy_input_global = np.load('tb03v/input_global.npy')
-npy_output_policy = np.load('tb03v/output_policy.npy')
-npy_output_value = np.load('tb03v/output_value.npy')
-npy_output_land = np.load('tb03v/output_land.npy')
+#npy_input_local = np.load('tb03v/input_local.npy')
+#npy_input_global = np.load('tb03v/input_global.npy')
+#npy_output_policy = np.load('tb03v/output_policy.npy')
+#npy_output_value = np.load('tb03v/output_value.npy')
+#npy_output_land = np.load('tb03v/output_land.npy')
 
 #npy_input_local = np.concatenate((npy_input_local, np.load('input_local_00.npy')))
 #npy_input_global = np.concatenate((npy_input_global, np.load('input_global_00.npy')))
@@ -45,7 +45,7 @@ npy_output_land = npy_output_land[perm]
 #npy_output_value = np.array_split(npy_output_value, 4)
 #npy_output_land = np.array_split(npy_output_land, 4)
 
-with open('tb03v.npz', 'wb') as f:
+with open('tb04v.npz', 'wb') as f:
     np.savez(f, inputLocalNCHW=npy_input_local, inputGlobalNC=npy_input_global, outputPolicyNCHW=npy_output_policy, outputValueNC=npy_output_value, outputOwnershipNCHW=npy_output_land)
 
 #with open('tb02b.npz', 'wb') as f:

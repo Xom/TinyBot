@@ -50,9 +50,49 @@ b2c16 = {
   "p1_num_channels":8,
   "g1_num_channels":8,
   "v1_num_channels":8,
-  "sbv2_num_channels":12,
-  "num_scorebeliefs":2,
   "v2_size":12,
+}
+
+b2c64 = {
+  "version":11,
+  "norm_kind":"fixup",
+  "bnorm_epsilon": 1e-4,
+  "bnorm_running_avg_momentum": 0.001,
+  "initial_conv_1x1": False,
+  "trunk_num_channels":64,
+  "mid_num_channels":64,
+  "gpool_num_channels":32,
+  "use_attention_pool":False,
+  "num_attention_pool_heads":2,
+  "block_kind": [
+    ["rconv1","regular"],
+    ["rconv2","regulargpool"],
+  ],
+  "p1_num_channels":32,
+  "g1_num_channels":32,
+  "v1_num_channels":32,
+  "v2_size":64,
+}
+
+b2c96 = {
+  "version":11,
+  "norm_kind":"fixup",
+  "bnorm_epsilon": 1e-4,
+  "bnorm_running_avg_momentum": 0.001,
+  "initial_conv_1x1": False,
+  "trunk_num_channels":96,
+  "mid_num_channels":96,
+  "gpool_num_channels":32,
+  "use_attention_pool":False,
+  "num_attention_pool_heads":2,
+  "block_kind": [
+    ["rconv1","regular"],
+    ["rconv2","regulargpool"],
+  ],
+  "p1_num_channels":32,
+  "g1_num_channels":32,
+  "v1_num_channels":32,
+  "v2_size":64,
 }
 
 b4c32 = {
@@ -75,8 +115,6 @@ b4c32 = {
   "p1_num_channels":12,
   "g1_num_channels":12,
   "v1_num_channels":12,
-  "sbv2_num_channels":24,
-  "num_scorebeliefs":4,
   "v2_size":24,
 }
 
@@ -100,8 +138,6 @@ b4c64 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":48,
-  "num_scorebeliefs":4,
   "v2_size":64,
 }
 
@@ -125,8 +161,6 @@ b4c96 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":48,
-  "num_scorebeliefs":4,
   "v2_size":64,
 }
 
@@ -152,8 +186,6 @@ b6c32 = {
   "p1_num_channels":12,
   "g1_num_channels":12,
   "v1_num_channels":12,
-  "sbv2_num_channels":24,
-  "num_scorebeliefs":4,
   "v2_size":24,
 }
 
@@ -179,8 +211,6 @@ b6c64 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":48,
-  "num_scorebeliefs":4,
   "v2_size":64,
 }
 
@@ -206,8 +236,6 @@ b6c96 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":48,
-  "num_scorebeliefs":4,
   "v2_size":64,
 }
 
@@ -237,8 +265,6 @@ b10c128 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":64,
-  "num_scorebeliefs":6,
   "v2_size":80,
 }
 
@@ -273,8 +299,6 @@ b15c192 = {
   "p1_num_channels":32,
   "g1_num_channels":32,
   "v1_num_channels":32,
-  "sbv2_num_channels":80,
-  "num_scorebeliefs":8,
   "v2_size":96,
 }
 
@@ -314,8 +338,6 @@ b20c256 = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -365,8 +387,6 @@ b30c256bt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -410,8 +430,6 @@ b24c320bt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -451,8 +469,6 @@ b20c384bt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -483,8 +499,6 @@ b10c512lbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -520,8 +534,6 @@ b15c384lbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -559,8 +571,6 @@ b18c320lbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -603,8 +613,6 @@ b23c256lbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -636,8 +644,6 @@ b12c384llbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -668,8 +674,6 @@ b10c384nbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -700,8 +704,6 @@ b10c480nb3t = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -729,8 +731,6 @@ b7c384lnbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -756,8 +756,6 @@ b5c512nnbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -798,8 +796,6 @@ b20c384lbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -850,8 +846,6 @@ b30c320 = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":112,
-  "num_scorebeliefs":8,
   "v2_size":128,
 }
 
@@ -911,8 +905,6 @@ b40c256 = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":112,
-  "num_scorebeliefs":8,
   "v2_size":128,
 }
 
@@ -950,8 +942,6 @@ b18c384nbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":112,
-  "num_scorebeliefs":8,
   "v2_size":128,
 }
 
@@ -985,8 +975,6 @@ b14c448nbt = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":112,
-  "num_scorebeliefs":8,
   "v2_size":128,
 }
 
@@ -1046,8 +1034,6 @@ b40c384 = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1128,8 +1114,6 @@ b60c320 = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1191,8 +1175,6 @@ b41c384nbt = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1244,8 +1226,6 @@ b32c448nbt = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1294,8 +1274,6 @@ b28c512nbt = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1335,8 +1313,6 @@ b20c640nbt = {
   "p1_num_channels":64,
   "g1_num_channels":64,
   "v1_num_channels":64,
-  "sbv2_num_channels":128,
-  "num_scorebeliefs":8,
   "v2_size":144,
 }
 
@@ -1376,8 +1352,6 @@ sandbox = {
   "p1_num_channels":48,
   "g1_num_channels":48,
   "v1_num_channels":48,
-  "sbv2_num_channels":96,
-  "num_scorebeliefs":8,
   "v2_size":112,
 }
 
@@ -1385,6 +1359,8 @@ sandbox = {
 base_config_of_name = {
   # Small nets
   "b2c16": b2c16,
+  "b2c64": b2c64,
+  "b2c96": b2c96,
   "b4c32": b4c32,
   "b4c64": b4c64,
   "b4c96": b4c96,
