@@ -422,113 +422,127 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
         game.sim->logitsToPriors(rng, false);
 
         if (game.sim->board.placements_remaining == 0) {
-          std::vector<std::shared_ptr<Node>> stack{};
-          do {
-            if (stack.empty()) {
-              if (game.sim->priors.empty()) {
-                if (game.sim->moves.size() == 1) {
-                  if (game.sim->children.empty()) {
-                    game.sim->board.doDraw(game.sim->moves[0]);
-                    game.sim->moves.clear();
-                    game.sim->priors.clear();
-                    game.sim->populateDraw();
-                    //                    game.sim->uniformPriors(rng);
-                  } else {
-                    game.sim = game.sim->children[0];
+          std::vector<int> trivial_endgames;
+          int trivial_score;
+          if (game.sim->board.ink == 2) {
+            trivial_score = game.sim->board.calculateTrivialEndgames(&trivial_endgames);
+          }
+          if (trivial_endgames.empty()) {
+            std::vector<std::shared_ptr<Node>> stack{};
+            do {
+              if (stack.empty()) {
+                if (game.sim->priors.empty()) {
+                  if (game.sim->moves.size() == 1) {
+                    if (game.sim->children.empty()) {
+                      game.sim->board.doDraw(game.sim->moves[0]);
+                      game.sim->moves.clear();
+                      game.sim->priors.clear();
+                      game.sim->populateDraw();
+                      //                    game.sim->uniformPriors(rng);
+                    } else {
+                      game.sim = game.sim->children[0];
+                    }
+                    continue;
                   }
+                  game.sim->uniformPriors(rng);
+                }
+
+                const int i = game.sim->selectChild(false, coefs_explore);  // TODO should I use coef_unvisited?
+
+                if (i == game.sim->children.size()) {
+                  std::shared_ptr<Node> child = std::make_shared<Node>(game.sim->board);
+                  child->move = game.sim->moves[i];
+                  child->board.doDraw(child->move);
+                  if (child->board.is_player_turn) {
+                    child->populateDraw();
+                    child->uniformPriors(rng);
+                  }
+                  game.sim->children.push_back(child);
+                  stack.push_back(child);
                   continue;
                 }
-                game.sim->uniformPriors(rng);
-              }
 
-              const int i = game.sim->selectChild(false, coefs_explore);  // TODO should I use coef_unvisited?
+                std::shared_ptr<Node> child = game.sim->children[i];
 
-              if (i == game.sim->children.size()) {
-                std::shared_ptr<Node> child = std::make_shared<Node>(game.sim->board);
-                child->move = game.sim->moves[i];
-                child->board.doDraw(child->move);
-                if (child->board.is_player_turn) {
-                  child->populateDraw();
-                  child->uniformPriors(rng);
+                if (child->visits < game.sim->getSearchThreshold(search_thresholds)) {
+                  stack.push_back(child);
+                  continue;
                 }
-                game.sim->children.push_back(child);
-                stack.push_back(child);
+
+                game.sim = child;
                 continue;
-              }
+              }  // end if (stack.empty())
 
-              std::shared_ptr<Node> child = game.sim->children[i];
+              std::shared_ptr<Node> leaf = stack.back();
 
-              if (child->visits < game.sim->getSearchThreshold(search_thresholds)) {
-                stack.push_back(child);
-                continue;
-              }
-
-              game.sim = child;
-              continue;
-            }  // end if (stack.empty())
-
-            std::shared_ptr<Node> leaf = stack.back();
-
-            if (leaf->board.is_player_turn) {
-              if (leaf->moves.empty()) {
-                leaf->board.calculateScore();
-                const double ev = static_cast<double>(leaf->board.score[0] + leaf->board.score[8] - kStuckPenaltyInt) / kScoreDenom;
-                for (auto& node : stack) {
-                  node->sum += ev;
-                  ++node->visits;
+              if (leaf->board.is_player_turn) {
+                if (leaf->moves.empty()) {
+                  leaf->board.calculateScore();
+                  const double ev = static_cast<double>(leaf->board.score[0] + leaf->board.score[8] - kStuckPenaltyInt) / kScoreDenom;
+                  for (auto& node : stack) {
+                    node->sum += ev;
+                    ++node->visits;
+                  }
+                  game.sim->sum += ev;
+                  ++game.sim->visits;
+                  stack.clear();
+                  continue;
                 }
-                game.sim->sum += ev;
-                ++game.sim->visits;
-                stack.clear();
-                continue;
-              }
 
-              const int i = leaf->moves.size() == 1 ? 0 : leaf->selectChild(true, coefs_explore);
+                const int i = leaf->moves.size() == 1 ? 0 : leaf->selectChild(true, coefs_explore);
 
-              if (i == leaf->children.size()) {
-                std::shared_ptr<Node> child = std::make_shared<Node>(leaf->board);
-                child->move = leaf->moves[i];
-                child->board.doDraw(child->move);
-                if (child->board.is_player_turn) {
-                  child->populateDraw();
-                  child->uniformPriors(rng);
+                if (i == leaf->children.size()) {
+                  std::shared_ptr<Node> child = std::make_shared<Node>(leaf->board);
+                  child->move = leaf->moves[i];
+                  child->board.doDraw(child->move);
+                  if (child->board.is_player_turn) {
+                    child->populateDraw();
+                    child->uniformPriors(rng);
+                  }
+                  leaf->children.push_back(child);
+                  stack.push_back(child);
+                  continue;
                 }
-                leaf->children.push_back(child);
-                stack.push_back(child);
+
+                stack.push_back(leaf->children[i]);
                 continue;
               }
 
-              stack.push_back(leaf->children[i]);
-              continue;
-            }
+              leaf->board.calculateScore();
+              const double ev = static_cast<double>(leaf->board.score[8]) / kScoreDenom;
+              for (auto& node : stack) {
+                node->sum += ev;
+                ++node->visits;
+              }
+              game.sim->sum += ev;
+              ++game.sim->visits;
+              stack.clear();
+            } while (game.sim->board.is_player_turn);
 
-            leaf->board.calculateScore();
-            const double ev = static_cast<double>(leaf->board.score[8]) / kScoreDenom;
-            for (auto& node : stack) {
+            game.sim->board.calculateScore();
+            //          if (game.root->board.placements_remaining == 26) {
+            //            ++debug_counter;
+            //            debug_score += game.sim->board.score[8];
+            ////            if (rng(1024) == 0) {
+            //              std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
+            //              game.sim->board.display();
+            //              std::cout << debug_counter << ": " << static_cast<float>(debug_score) / static_cast<float>(debug_counter) << "\n";
+            ////            }
+            //          }
+            const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
+            for (auto& node : game.stack) {
               node->sum += ev;
               ++node->visits;
             }
-            game.sim->sum += ev;
-            ++game.sim->visits;
-            stack.clear();
-          } while (game.sim->board.is_player_turn);
-
-          game.sim->board.calculateScore();
-          //          if (game.root->board.placements_remaining == 26) {
-          //            ++debug_counter;
-          //            debug_score += game.sim->board.score[8];
-          ////            if (rng(1024) == 0) {
-          //              std::cout << game.sim_stream << " + " << game.stack.front()->visits << ":\n";
-          //              game.sim->board.display();
-          //              std::cout << debug_counter << ": " << static_cast<float>(debug_score) / static_cast<float>(debug_counter) << "\n";
-          ////            }
-          //          }
-          const double ev = static_cast<double>(game.sim->board.score[8]) / kScoreDenom;
-          for (auto& node : game.stack) {
-            node->sum += ev;
-            ++node->visits;
+            game.root->sum += ev;
+          } else {
+            const double ev = static_cast<double>(trivial_score) / kScoreDenom;
+            for (auto& node : game.stack) {
+              node->sum += ev;
+              ++node->visits;
+            }
+            game.root->sum += ev;
           }
-          game.root->sum += ev;
           ++game.root->visits;
           game.sim.reset();
           game.stack.clear();

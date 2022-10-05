@@ -1502,4 +1502,75 @@ bool Board::isCoast(const int mask) {
   }
 }
 
+// This algorithm is wrong in the unusual case where some initial draw removing a church penalty and some initial
+// draw(s) removing house penalties are each individually insufficient to improve the score, but a multi-cell
+// island removing all of those penalties is sufficient. I don't know if that's possible, because only one of those
+// can be indirect, therefore the other(s) could only fail to improve the score by losing at least 5 boat points.
+int Board::calculateTrivialEndgames(std::vector<int>* moves) {
+  calculateScore();
+  int good_score = score[8];
+  int interesting_moves[4]{0, 0, 0, 0};
+  std::vector<int> unevaluated;
+  for (int z = 0; z < 81; ++z) {
+    if (input_local[z + 648] > 0.5f) {
+      const int x = z % 9;
+      const int y = z / 9;
+      bool indir = input_local[z + 648] == 1.0f;
+      bool direct_interesting = (!indir) && (land[z] == 0 ?
+        (tile[z] == kForest || tile[z] == kHouse || tile[z] == kMountain || tile[z] == kChurch || (x != 0 && tile[z - 1] == kSand) || (x != 8 && tile[z + 1] == kSand) || (y != 0 && tile[z - 9] == kSand) || (y != 8 && tile[z + 9] == kSand))
+        : (tile[z] == kSand || tile[z] == kWave || tile[z] == kBoat));
+      bool land_church = (!indir) && land[z] != 0 && tile[z] == kChurch;
+      if (direct_interesting) {
+        ++interesting_moves[land[z]];
+        if (interesting_moves[land[z]] == 2) {
+          moves->clear();
+          return 0;
+        }
+      }
+      if (indir || direct_interesting || land_church) {
+        Board other = *this;
+        other.doDraw(z);
+        other.doDraw(kMovePass);
+        other.calculateScore();
+        if (other.score[8] > score[8]) {
+          if (indir || land_church) {
+            ++interesting_moves[land[z]];
+            if (interesting_moves[land[z]] == 2) {
+              moves->clear();
+              return 0;
+            }
+          }
+          if (other.score[8] >= good_score) {
+            if (other.score[8] > good_score) {
+              good_score = other.score[8];
+              moves->clear();
+            }
+            moves->push_back(z);
+          }
+        } else if (other.score[8] == good_score) {
+          moves->push_back(z);
+        }
+      } else if (good_score == score[8] && tile[z] == kBlank) {
+        if (land[z] == 0) {
+          unevaluated.push_back(z);
+        } else {
+          moves->push_back(z);
+        }
+      }
+    }
+  }
+  if (moves->empty() && good_score == score[8]) {
+    for (const int z : unevaluated) {
+      Board other = *this;
+      other.doDraw(z);
+      other.doDraw(kMovePass);
+      other.calculateScore();
+      if (other.score[8] == good_score) {
+        moves->push_back(z);
+      }
+    }
+  }
+  return good_score;
+}
+
 }  // namespace tinybot
