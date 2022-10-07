@@ -236,7 +236,7 @@ void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explor
   record.push_back(kZoneChars[z % 9 + 9]);
   record.push_back(kZoneChars[z / 9]);
   record.push_back(' ');
-  if (root->board.is_player_turn && root->moves.size() > 1) {
+  if (root->board.is_player_turn && root->moves.size() > 1 && !root->board.is_trivial) {
     root->noisifyPriors(rng, true);
   }
   sim_stream += root->visits;
@@ -324,8 +324,8 @@ void Game::reportVisits(const int selected_move, double* coefs_explore) {
 
 void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
   reset();
-//  random_moves = std::min(rng(8), rng(8));
-  random_moves = thread_id;
+  random_moves = std::min(rng(8), rng(8));
+//  random_moves = thread_id;
   for (int i = 0; i < random_moves; ++i) {
     doOffer(rng, deck);
     doPlace(root->moves[rng(root->moves.size())]);
@@ -348,6 +348,24 @@ void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& 
   record += "\n";
   out_file << record << std::flush;
   start(thread_id, rng, deck);
+}
+
+void Game::doTrivial(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, std::vector<int>* trivials) {
+  record.push_back('{');
+  for (const int z : *trivials) {
+    record += intToString(z);
+    record.push_back(':');
+    record.push_back('1');
+    record.push_back(',');
+  }
+  record.push_back('}');
+  const int z = (*trivials)[rng(trivials->size())];
+  record.push_back(kZoneChars[z % 9 + 9]);
+  record.push_back(kZoneChars[z / 9]);
+  record.push_back(' ');
+  root->board.doDraw(z);
+  root->board.doDraw(kMovePass);
+  restart(thread_id, rng, deck, out_file, false);
 }
 
 SearchManager::SearchManager(const int st, const char* trt_filename)
@@ -679,12 +697,24 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 game.doDraw(game.root->moves[0]);
               } else {
                 game.doPlace(game.root->moves[0]);
+                if (game.root->board.placements_remaining == 0 && game.root->board.ink == 2) {
+                  std::vector<int> trivials;
+                  game.root->board.calculateTrivialEndgames(&trivials);
+                  if (!trivials.empty()) {
+                    game.doTrivial(thread_id, rng, deck, out_file, &trivials); // contains restart
+                    break;
+                  }
+                }
               }
             } else {
               if (game.root->board.placements_until_draw == 0) {
                 game.doDraw(rng, game.root->children[0], coefs_explore);
               } else {
                 game.doPlace(rng, game.root->children[0], coefs_explore);
+                if (game.root->board.is_trivial) {
+                  game.doTrivial(thread_id, rng, deck, out_file, &game.root->moves); // contains restart
+                  break;
+                }
               }
             }
             continue;
@@ -702,6 +732,14 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             }
             if (child->board.is_player_turn) {
               child->populateDraw();  // child is not placement, because parent is player turn therefore not offer
+              if (child->board.placements_remaining == 0 && child->board.ink == 2) {
+                std::vector<int> trivials;
+                const int trivial_score = child->board.calculateTrivialEndgames(&trivials);
+                if (!trivials.empty()) {
+                  child->moves = std::move(trivials);
+                  child->sum = static_cast<double>(trivial_score) / kScoreDenom;
+                }
+              }
             }
             game.root->children.push_back(child);
             game.stack.push_back(child);
@@ -719,11 +757,30 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             game.doDraw(rng, child, coefs_explore);
           } else {
             game.doPlace(rng, child, coefs_explore);
+            if (game.root->board.is_trivial) {
+              game.doTrivial(thread_id, rng, deck, out_file, &game.root->moves); // contains restart
+              break;
+            }
           }
           continue;
         }  // end if (game.stack.empty())
 
         std::shared_ptr<Node> leaf = game.stack.back();
+
+        if (leaf->board.is_trivial) {
+          const double ev = leaf->visits == 0 ? leaf->sum : (leaf->sum / leaf->visits);
+          if (leaf->visits == 0) {
+            leaf->sum = 0;
+          }
+          for (auto& node : game.stack) {
+            node->sum += ev;
+            ++node->visits;
+          }
+          game.root->sum += ev;
+          ++game.root->visits;
+          game.stack.clear();
+          continue;
+        }
 
         if (leaf->board.is_player_turn) {
           if (leaf->moves.empty()) {
@@ -750,13 +807,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           if (i == leaf->children.size()) {
             std::shared_ptr<Node> child = std::make_shared<Node>(leaf->board);
             child->move = leaf->moves[i];
-            if (leaf->board.placements_until_draw == 0) {
-              child->board.doDraw(child->move);
-            } else {
-              child->board.doPlace(child->move % 81, child->move / 81);
-            }
+            child->board.doDraw(child->move); // leaf can only be draw; only root can be placement or draw
             if (child->board.is_player_turn) {
-              child->populateDraw();  // child is not placement, because parent is player turn therefore not offer
+              child->populateDraw();  // child is not placement, because leaf is draw
             }
             leaf->children.push_back(child);
             game.stack.push_back(child);

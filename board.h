@@ -91,6 +91,7 @@ class Board {
   bool indirect_overlap{false};
   bool is_final_score{false};
   bool is_player_turn{false};
+  bool is_trivial{false};
 };
 
 }  // namespace tinybot

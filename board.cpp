@@ -1570,6 +1570,7 @@ int Board::calculateTrivialEndgames(std::vector<int>* moves) {
       }
     }
   }
+  is_trivial = !moves->empty();
   return good_score;
 }
 
