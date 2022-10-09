@@ -18,14 +18,14 @@ static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 static constexpr double kNoiseTotal = 10.83;
 static constexpr double kCoefForcedPlayout = 1.41421356;  // sqrt(2)
-static constexpr int kRowsPerTurn = 1;
+static constexpr int kRowsPerTurn = 8;
 
 static constexpr int kSearchThresholds[12]{32, 32, 0, 0,
                                            32, 32, 0, 0,
                                            64, 64, 0, 0};  // phases c and d use constants for b
 static constexpr double kCoefsExplore[12]{20.0, 18.0, 0, 0,
                                           20.0, 18.0, 0, 0,
-                                          20.0, 18.0, 0, 0};  // proportional to game score stdev / branching factor
+                                          20.0, 16.0, 0, 0};  // proportional to game score stdev / branching factor
 enum BoardPhase { kPhase0a,
                   kPhase0b,
                   kPhase0c,

@@ -1131,7 +1131,7 @@ class PolicyHead(torch.nn.Module):
 
 
 class ValueHead(torch.nn.Module):
-    def __init__(self, c_in, c_v1, c_v2, c_sv2, config, activation, pos_len):
+    def __init__(self, c_in, c_v1, c_v2, config, activation, pos_len):
         super(ValueHead, self).__init__()
         self.activation = activation
         self.conv1 = torch.nn.Conv2d(c_in, c_v1, kernel_size=1, bias=False)
@@ -1213,7 +1213,6 @@ class Model(torch.nn.Module):
         self.c_g1 = config["g1_num_channels"]
         self.c_v1 = config["v1_num_channels"]
         self.c_v2 = config["v2_size"]
-        self.c_sv2 = config["sbv2_num_channels"]
         self.num_total_blocks = len(self.block_kind)
         self.pos_len = pos_len
 
@@ -1330,7 +1329,6 @@ class Model(torch.nn.Module):
             self.c_trunk,
             self.c_v1,
             self.c_v2,
-            self.c_sv2,
             self.config,
             self.activation,
             self.pos_len,

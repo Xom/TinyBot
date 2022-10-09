@@ -11,7 +11,7 @@ int main(const int argc, const char* argv[]) {
   if (argc < 2) {
     return tinybot::npy(false);  // converter mode, to convert game records into training data (npy format)
   }
-  std::string kTrtFilename = "tb04_" + tinybot::intToString(tinybot::kBatchSize) + ".trt";
+  std::string kTrtFilename = "tb05_" + tinybot::intToString(tinybot::kBatchSize) + ".trt";
   int search_threads = atoi(argv[1]);
   if (search_threads == 0) {
     return 1;  // argv[0] not a number, TODO custom game
