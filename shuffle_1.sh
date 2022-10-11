@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-for i in {0..239}
+for i in {0..99}
 do
-    python shuffle_1.py $i {0..76..4}
+    python shuffle_1.py $i {0..24..2}
     echo $i
     df -h
 done

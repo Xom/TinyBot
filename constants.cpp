@@ -5,9 +5,9 @@ namespace tinybot {
 const char* kTensorNames[kNumTensors]{"input_local", "input_global", "output_policy", "output_value", "output_land"};
 
 void searchExperiment(const int thread_id, int* search_thresholds, double* coefs_explore) {
-  coefs_explore[kPhase0a] = 2.0 * thread_id + 12.0;
-  coefs_explore[kPhase1a] = 2.0 * thread_id + 12.0;
-  coefs_explore[kPhase2a] = 2.0 * thread_id + 12.0;
+//  coefs_explore[kPhase0a] = 2.0 * thread_id + 12.0;
+//  coefs_explore[kPhase1a] = 2.0 * thread_id + 12.0;
+//  coefs_explore[kPhase2a] = 2.0 * thread_id + 12.0;
   coefs_explore[kPhase0b] = 2.0 * thread_id + 12.0;
   coefs_explore[kPhase1b] = 2.0 * thread_id + 12.0;
 //  switch (thread_id) {
