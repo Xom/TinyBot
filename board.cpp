@@ -1502,6 +1502,31 @@ bool Board::isCoast(const int mask) {
   }
 }
 
+// assumes start of second drawing
+void Board::calculateEarlyLakes(std::vector<int>* moves) {
+  float best_p = 0.5f;
+  int best_z = -1;
+  for (int y = 1; y < 8; ++y) {
+    for (int x = 1; x < 8; ++x) {
+      const int z = y * 9 + x;
+      switch (tile[z]) {
+        case kSand:
+        case kWave:
+        case kBoat:
+          if (land[z] != 0 && input_local[z + 648] > best_p) {
+            best_p = input_local[z + 648];
+            best_z = z;
+          }
+        default:
+          break;
+      }
+    }
+  }
+  if (best_z != -1) {
+    moves->push_back(best_z);
+  }
+}
+
 // This algorithm is wrong in the unusual case where some initial draw removing a church penalty and some initial
 // draw(s) removing house penalties are each individually insufficient to improve the score, but a multi-cell
 // island removing all of those penalties is sufficient. I don't know if that's possible, because only one of those

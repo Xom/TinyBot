@@ -350,6 +350,29 @@ void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& 
   start(thread_id, rng, deck);
 }
 
+void Game::doEarlyLake(pcg32& rng, std::vector<int>* lakes) {
+  record.push_back('{');
+  for (const int z : *lakes) {
+    record += intToString(z);
+    record.push_back(':');
+    record.push_back('1');
+    record.push_back(',');
+  }
+  record.push_back('}');
+  const int z = (*lakes)[rng(lakes->size())];
+  record.push_back(kZoneChars[z % 9 + 9]);
+  record.push_back(kZoneChars[z / 9]);
+  root->board.doDraw(z);
+
+  root->moves.clear();
+  root->priors.clear();
+  root->children.clear();
+  root->move = z; // I don't think anything reads root->move, but let's play it safe
+  root->visits = 0;
+  root->sum = 0;
+  root->populateDraw();
+}
+
 void Game::doTrivial(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, std::vector<int>* trivials) {
   record.push_back('{');
   for (const int z : *trivials) {
@@ -697,12 +720,20 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 game.doDraw(game.root->moves[0]);
               } else {
                 game.doPlace(game.root->moves[0]);
-                if (game.root->board.placements_remaining == 0 && game.root->board.ink == 2) {
-                  std::vector<int> trivials;
-                  game.root->board.calculateTrivialEndgames(&trivials);
-                  if (!trivials.empty()) {
-                    game.doTrivial(thread_id, rng, deck, out_file, &trivials); // contains restart
-                    break;
+                if (game.root->board.ink == 2) {
+                  if (game.root->board.placements_remaining == 8) {
+                    std::vector<int> lakes;
+                    game.root->board.calculateEarlyLakes(&lakes);
+                    if (!lakes.empty()) {
+                      game.doEarlyLake(rng, &lakes);
+                    }
+                  } else if (game.root->board.placements_remaining == 0) {
+                    std::vector<int> trivials;
+                    game.root->board.calculateTrivialEndgames(&trivials);
+                    if (!trivials.empty()) {
+                      game.doTrivial(thread_id, rng, deck, out_file, &trivials); // contains restart
+                      break;
+                    }
                   }
                 }
               }
@@ -714,6 +745,13 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 if (game.root->board.is_trivial) {
                   game.doTrivial(thread_id, rng, deck, out_file, &game.root->moves); // contains restart
                   break;
+                }
+                if (game.root->board.placements_remaining == 8 && game.root->board.ink == 2) {
+                  std::vector<int> lakes;
+                  game.root->board.calculateEarlyLakes(&lakes);
+                  if (!lakes.empty()) {
+                    game.doEarlyLake(rng, &lakes);
+                  }
                 }
               }
             }
@@ -760,6 +798,13 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             if (game.root->board.is_trivial) {
               game.doTrivial(thread_id, rng, deck, out_file, &game.root->moves); // contains restart
               break;
+            }
+            if (game.root->board.placements_remaining == 8 && game.root->board.ink == 2) {
+              std::vector<int> lakes;
+              game.root->board.calculateEarlyLakes(&lakes);
+              if (!lakes.empty()) {
+                game.doEarlyLake(rng, &lakes);
+              }
             }
           }
           continue;
