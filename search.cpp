@@ -350,16 +350,17 @@ void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& 
   start(thread_id, rng, deck);
 }
 
-void Game::doEarlyLake(pcg32& rng, std::vector<int>* lakes) {
+void Game::doEarlyLake(pcg32& rng, std::unordered_set<int>* lakes) {
+  std::vector<int> moves(lakes->begin(), lakes->end());
   record.push_back('{');
-  for (const int z : *lakes) {
+  for (const int z : moves) {
     record += intToString(z);
     record.push_back(':');
     record.push_back('1');
     record.push_back(',');
   }
   record.push_back('}');
-  const int z = (*lakes)[rng(lakes->size())];
+  const int z = moves[rng(moves.size())];
   record.push_back(kZoneChars[z % 9 + 9]);
   record.push_back(kZoneChars[z / 9]);
   root->board.doDraw(z);
@@ -722,7 +723,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 game.doPlace(game.root->moves[0]);
                 if (game.root->board.ink == 2) {
                   if (game.root->board.placements_remaining == 8) {
-                    std::vector<int> lakes;
+                    std::unordered_set<int> lakes;
                     game.root->board.calculateEarlyLakes(&lakes);
                     if (!lakes.empty()) {
                       game.doEarlyLake(rng, &lakes);
@@ -747,7 +748,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                   break;
                 }
                 if (game.root->board.placements_remaining == 8 && game.root->board.ink == 2) {
-                  std::vector<int> lakes;
+                  std::unordered_set<int> lakes;
                   game.root->board.calculateEarlyLakes(&lakes);
                   if (!lakes.empty()) {
                     game.doEarlyLake(rng, &lakes);
@@ -800,7 +801,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               break;
             }
             if (game.root->board.placements_remaining == 8 && game.root->board.ink == 2) {
-              std::vector<int> lakes;
+              std::unordered_set<int> lakes;
               game.root->board.calculateEarlyLakes(&lakes);
               if (!lakes.empty()) {
                 game.doEarlyLake(rng, &lakes);

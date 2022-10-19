@@ -65,7 +65,7 @@ class Game {
   void reportVisits(int selected_move, double* coefs_explore);
   void start(int thread_id, pcg32& rng, IDeck& deck);
   void restart(int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, bool stuck);
-  void doEarlyLake(pcg32& rng, std::vector<int>* lakes);
+  void doEarlyLake(pcg32& rng, std::unordered_set<int>* lakes);
   void doTrivial(int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, std::vector<int>* trivials);
 
   std::shared_ptr<Node> root;

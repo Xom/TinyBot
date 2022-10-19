@@ -46,7 +46,7 @@ class Board {
   void calcSand(int z);
   void calcWave(int (&waves)[28], int z);
   void calcBoat(int boatZ);
-  void calculateEarlyLakes(std::vector<int>* moves);
+  void calculateEarlyLakes(std::unordered_set<int>* moves);
   int calculateTrivialEndgames(std::vector<int>* moves);
 
   static int calcForestId(std::unordered_map<int, int>& forest_ids, const int z);

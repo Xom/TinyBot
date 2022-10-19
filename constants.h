@@ -22,7 +22,7 @@ static constexpr int kRowsPerTurn = 1;
 
 static constexpr int kSearchThresholds[12]{128, 128, 0, 0,
                                            128, 128, 0, 0,
-                                           128, 64, 0, 0};  // phases c and d use constants for b
+                                           128, 128, 0, 0};  // phases c and d use constants for b
 static constexpr double kCoefsExplore[12]{16.0, 16.0, 0, 0,
                                           16.0, 16.0, 0, 0,
                                           16.0, 16.0, 0, 0};  // proportional to game score stdev / branching factor

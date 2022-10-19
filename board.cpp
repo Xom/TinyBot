@@ -1503,9 +1503,7 @@ bool Board::isCoast(const int mask) {
 }
 
 // assumes start of second drawing
-void Board::calculateEarlyLakes(std::vector<int>* moves) {
-  float best_p = 0.5f;
-  int best_z = -1;
+void Board::calculateEarlyLakes(std::unordered_set<int>* moves) {
   for (int y = 1; y < 8; ++y) {
     for (int x = 1; x < 8; ++x) {
       const int z = y * 9 + x;
@@ -1513,17 +1511,39 @@ void Board::calculateEarlyLakes(std::vector<int>* moves) {
         case kSand:
         case kWave:
         case kBoat:
-          if (land[z] != 0 && input_local[z + 648] > best_p) {
-            best_p = input_local[z + 648];
-            best_z = z;
+          if (land[z] != 0) {
+            const float p = input_local[z + 648];
+            if (p > 0.5f) {
+              bool has_better_neighbor = false;
+              int neighbors[] = {z - 9, z - 1, z + 1, z + 9};
+              for (int zz : neighbors) {
+                if (input_local[zz + 648] > p) {
+                  switch (tile[zz]) {
+                    case kBlank:
+                      if (tile[z] != kSand) {
+                        moves->insert(zz);
+                      }
+                      break;
+                    case kSand:
+                    case kWave:
+                    case kBoat:
+                      has_better_neighbor = true;
+                      break;
+                    default:
+                      break;
+                  }
+                }
+              }
+              if (!has_better_neighbor) {
+                moves->insert(z);
+              }
+            }
           }
+          break;
         default:
           break;
       }
     }
-  }
-  if (best_z != -1) {
-    moves->push_back(best_z);
   }
 }
 
