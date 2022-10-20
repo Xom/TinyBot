@@ -30,11 +30,13 @@ struct Node {
   void populateDraw();
   // methods on priors assume !empty()
   void uniformPriors(pcg32& rng);
+  void landBasedPriors(pcg32& rng, int offset_land, const float* output_land); // don't sort at end, because priors will change later in RAVE-like scheme
   void logitsToPriors(pcg32& rng, bool is_root);
   void normalizePriors(bool do_sort);
   void noisifyPriors(pcg32& rng, bool do_temperature);
   void sortMoves();
   int selectChild(bool apply_coef_unvisited, double* coefs_explore);
+  int selectSimChild(bool apply_coef_unvisited, double* coefs_explore);
   int getSearchThreshold(const int* search_thresholds) const;
   double getCoefExplore(const double* coefs_explore) const;
   double getCoefUnvisited(const double* coefs_explore) const;

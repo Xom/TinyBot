@@ -2,19 +2,28 @@
 
 namespace tinybot {
 
-std::string doubleToString(double x) {
+double logit2p(const double x) {
+  const double odds = exp(x);
+  return odds / (1.0 + odds);
+}
+
+double logit2p(const double x, const bool negate) {
+  return negate ? (1.0 - logit2p(x)) : logit2p(x);
+}
+
+std::string doubleToString(const double x) {
   std::stringstream ss;
   ss << x;
   return ss.str();
 }
 
-std::string intToString(int x) {
+std::string intToString(const int x) {
   std::stringstream ss;
   ss << x;
   return ss.str();
 }
 
-std::string int64ToString(int64_t x) {
+std::string int64ToString(const int64_t x) {
   std::stringstream ss;
   ss << x;
   return ss.str();

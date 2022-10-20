@@ -28,7 +28,7 @@ namespace tinybot {
 
 struct InferenceOutput {
   float output_policy[kBufferLengths[kOutputPolicy]];
-//  float output_value[kBufferLengths[kOutputValue]];
+  float output_land[kBufferLengths[kOutputLand]];
 };
 
 struct InferenceInput {
