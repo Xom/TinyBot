@@ -1,10 +1,11 @@
-**2022-10-2X**
+**2022-10-22**
 
 I'm writing this chronological account of TinyBot's development in exhausting, and maybe boring, detail, before I forget too many of those details, because having discovered a blind spot in the bot's policy, I'm taking some time to try a remedy, instead of stopping training soon as I'd originally intended, since the score improvement has slowed to a crawl in the interval of 70-71.
 
 I still intend a separate, more reader-friendly writeup once the project has truly concluded.
 
 For reference, [README_TinyIslands.md](README_TinyIslands.md) describes the game.
+[README_net.txt](README_net.txt) describes the neural net inputs and outputs.
 
 **First try in Java, two years ago (2020)**
 
@@ -16,6 +17,7 @@ At first I represented drawing each shoreline segment as a separate turn, but th
 
 This worked better, resulting in a mean score of 38. The bot still strongly preferred water tiles, because they're easier to avoid penalties with, as seen in this game that happened to match the mean score of 38:
 ![38 points with islands of 2, 3, and 7 cells; using 9 land tiles and 17 water tiles](https://cdn.discordapp.com/attachments/218837764701945858/763222612243120128/unknown.png)
+
 Then I hardcoded the bot to choose penalty-affecting cells immediately whenever possible, and the mean improved to 42.
 
 Next, I found the library DeepLearning4Java, implemented and trained a 6-block, 96-channel neural net based on KataGo, and used it to bias the bot's policy. (I don't remember thinking about using the value head.) This caused the rollouts to be much better at avoiding penalties, and the bot no longer strongly preferred water tiles. The mean score was 50-60 points, depending on the number of rollouts allowed.
