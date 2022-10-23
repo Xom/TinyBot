@@ -6,7 +6,7 @@ For sake of display on GitHub, below is a copy of [README_oct.md](README_oct.md)
 
 **2022-10-22**
 
-I'm writing this chronological account of TinyBot's development in exhausting, and maybe boring, detail, before I forget too many of those details, because having discovered a blind spot in the bot's policy, I'm taking some time to try a remedy, instead of stopping training soon as I'd originally intended, since the score improvement has slowed to a crawl in the interval of 70-71.
+I'm writing this chronological account of TinyBot's development in exhausting, and maybe boring, detail, before I forget too many of those details, because having discovered a blind spot in the bot's policy, I'm taking some time to try a remedy, instead of stopping training soon as I'd originally intended, since the score improvement had slowed to a crawl in the interval of 70-71.
 
 I still intend a separate, more reader-friendly writeup once the project has truly concluded.
 
