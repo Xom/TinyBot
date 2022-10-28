@@ -106,15 +106,13 @@ void InferenceManager::infer(std::shared_ptr<InferenceInput> input, std::shared_
           context->buffers[binding_indices[kOutputPolicy]],
           kBufferSizes[kOutputPolicy],
           cudaMemcpyDeviceToHost));
-  /*
-    CUDA_ERR(
-        "infer",
-        cudaMemcpy(
-            result->output_value,
-            context->buffers[binding_indices[kOutputValue]],
-            kBufferSizes[kOutputValue],
-            cudaMemcpyDeviceToHost));
-  */
+  CUDA_ERR(
+      "infer",
+      cudaMemcpy(
+          result->output_land,
+          context->buffers[binding_indices[kOutputLand]],
+          kBufferSizes[kOutputLand],
+          cudaMemcpyDeviceToHost));
 
   context_pool.push(context);
 

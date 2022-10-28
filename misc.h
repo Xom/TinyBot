@@ -4,6 +4,7 @@
 #define TINYBOT_MISC_H
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <sstream>
 #include <string>
@@ -19,6 +20,9 @@ struct StringError : public std::exception {
       : exception(), message(m) {}
   const char* what() const throw() final { return message.c_str(); }
 };
+
+double logit2p(double d);
+double logit2p(double d, bool negate);
 
 std::string doubleToString(double x);
 std::string intToString(int x);
