@@ -18,7 +18,7 @@ static constexpr double kNegativeInfinity = -kPositiveInfinity;
 static constexpr double kPcg32MaxDouble = static_cast<double>(pcg32::max());
 static constexpr double kNoiseTotal = 10.83;
 static constexpr double kCoefForcedPlayout = 1.41421356;  // sqrt(2)
-static constexpr int kRowsPerTurn = 1;
+static constexpr int kRowsPerTurn = 8;
 
 static constexpr int kSearchThresholds[12]{128, 128, 0, 0,
                                            128, 128, 0, 0,

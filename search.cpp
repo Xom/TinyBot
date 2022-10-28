@@ -9,6 +9,29 @@ Node::Node(Board& other) {
 void Node::populateDraw() {
   if (board.ink != 2) {
     moves.push_back(kMovePass);
+  } else if (board.placements_remaining == 8) {
+    for (int z = 0; z < 81; ++z) {
+      if (board.input_local[z + 648] > 0.5f) {
+        if (board.land[z] != 0) {
+          switch (board.tile[z]) {
+            case kSand:
+            case kWave:
+            case kBoat:
+              moves.clear();
+              for (int zz = 0; zz < 81; ++zz) {
+                if (board.input_local[zz + 648] > 0.5f && board.land[zz] != 0) {
+                  moves.push_back(zz);
+                }
+              }
+              return;
+            default:
+              break;
+          }
+        }
+        moves.push_back(z);
+      }
+    }
+    return;
   }
   for (int z = 0; z < 81; ++z) {
     if (board.input_local[z + 648] > 0.5f) {
