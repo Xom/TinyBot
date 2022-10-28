@@ -75,7 +75,7 @@ void Node::landBasedPriors(pcg32& rng, const int offset_land, const float* outpu
   for (int i = 0; i < n; ++i) {
     priors[i] = 0.5 * ((priors[i] / total) + (priors_using_remainder[i] / total_using_remainder));
   }
-  // don't sort at end, because priors will change later in RAVE-like scheme
+  sortMoves();
 }
 
 void Node::logitsToPriors(pcg32& rng, const bool is_root) {
@@ -216,41 +216,6 @@ int Node::selectChild(const bool apply_coef_unvisited, double* coefs_explore) {
   for (int i = 0; i < priors.size(); ++i) {
     if (i == children.size() || children[i]->visits == 0) {
       return (visits == 0 || sum / visits + coef_explore * priors[i] + coef_unvisited * sqrt(p_explored) > best_ucb) ? i : best_i;
-    }
-    if (int(coef_forced_playout * sqrt(priors[i])) > children[i]->visits) {
-      return i;
-    }
-    p_explored += priors[i];
-    const auto& child = children[i];
-    const double ucb = child->sum / child->visits + coef_explore * priors[i] / (1.0 + child->visits);
-    if (ucb > best_ucb) {
-      best_ucb = ucb;
-      best_i = i;
-    }
-  }
-  return best_i;
-}
-
-int Node::selectSimChild(const bool apply_coef_unvisited, double* coefs_explore) {
-  if (moves.size() == 1) {
-    return 0;
-  }
-  const double base_coef_explore = getCoefExplore(coefs_explore);
-  const double sqrt_rv = sqrt(static_cast<double>(visits));
-  const double coef_explore = base_coef_explore * sqrt_rv;
-  const double coef_unvisited = apply_coef_unvisited ? getCoefUnvisited(base_coef_explore) : 0;
-  const double coef_forced_playout = kCoefForcedPlayout * sqrt_rv;
-  double p_explored = 0;
-  int best_i = 0;
-  double best_ucb = kNegativeInfinity;
-  for (int i = 0; i < priors.size(); ++i) {
-    if (i >= children.size() || children[i]->visits == 0) {
-      const double ucb = (visits == 0 ? 0.0 : (sum / visits)) + coef_explore * priors[i] + coef_unvisited * sqrt(p_explored);
-      if (ucb > best_ucb) {
-        best_ucb = ucb;
-        best_i = i;
-      }
-      continue;
     }
     if (int(coef_forced_playout * sqrt(priors[i])) > children[i]->visits) {
       return i;
@@ -580,19 +545,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                   game.sim->landBasedPriors(rng, offset_land, output_land);
                 }
 
-                int i = game.sim->selectSimChild(false, coefs_explore);  // TODO should I use coef_unvisited?
+                const int i = game.sim->selectChild(false, coefs_explore);  // TODO should I use coef_unvisited?
 
-                const int j = game.sim->children.size();
-                if (i >= j) {
-                  if (i != j) {
-                    const auto tmp_move = game.sim->moves[j];
-                    const auto tmp_prior = game.sim->priors[j];
-                    game.sim->moves[j] = game.sim->moves[i];
-                    game.sim->priors[j] = game.sim->priors[i];
-                    game.sim->moves[i] = tmp_move;
-                    game.sim->priors[i] = tmp_prior;
-                    i = j;
-                  }
+                if (i == game.sim->children.size()) {
                   std::shared_ptr<Node> child = std::make_shared<Node>(game.sim->board);
                   child->move = game.sim->moves[i];
                   child->board.doDraw(child->move);
@@ -632,19 +587,9 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                   continue;
                 }
 
-                int i = leaf->selectSimChild(true, coefs_explore);
+                const int i = leaf->moves.size() == 1 ? 0 : leaf->selectChild(true, coefs_explore);
 
-                const int j = leaf->children.size();
-                if (i >= j) {
-                  if (i != j) {
-                    const auto tmp_move = leaf->moves[j];
-                    const auto tmp_prior = leaf->priors[j];
-                    leaf->moves[j] = leaf->moves[i];
-                    leaf->priors[j] = leaf->priors[i];
-                    leaf->moves[i] = tmp_move;
-                    leaf->priors[i] = tmp_prior;
-                    i = j;
-                  }
+                if (i == leaf->children.size()) {
                   std::shared_ptr<Node> child = std::make_shared<Node>(leaf->board);
                   child->move = leaf->moves[i];
                   child->board.doDraw(child->move);
