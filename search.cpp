@@ -49,7 +49,7 @@ void Node::uniformPriors(pcg32& rng) {
 
 void Node::landBasedPriors(pcg32& rng, const int offset_land, const float* output_land) {
   auto compare = std::greater<>{};
-  std::sort(moves.begin(), moves.end(), [&](int a, int b) { return compare(board.input_local[a + 648], board.input_local[b + 648]); });
+  std::sort(moves.begin(), moves.end(), [&](int a, int b) { return compare(a == kMovePass ? 0 : board.input_local[a + 648], b == kMovePass ? 0 : board.input_local[b + 648]); });
 
   std::vector<double> priors_using_remainder;
   double total = 0.0;
@@ -58,6 +58,16 @@ void Node::landBasedPriors(pcg32& rng, const int offset_land, const float* outpu
   double next_remainder = 1.0;
   float prev;
   for (int z : moves) {
+    if (z == kMovePass) {
+      const double p = 0.000000001; // set to 1/n later
+      const double p_remainder = p * remainder;
+      priors.push_back(p);
+      total += p;
+      priors_using_remainder.push_back(p_remainder);
+      total_using_remainder += p_remainder;
+      next_remainder *= 1.0 - p;
+      continue;
+    }
     if (board.input_local[z + 648] != prev) {
       prev = board.input_local[z + 648];
       remainder = next_remainder;
@@ -73,9 +83,9 @@ void Node::landBasedPriors(pcg32& rng, const int offset_land, const float* outpu
 
   const auto n = priors.size();
   for (int i = 0; i < n; ++i) {
-    priors[i] = 0.5 * ((priors[i] / total) + (priors_using_remainder[i] / total_using_remainder));
+    priors[i] = n == 1 ? 1.0 : (moves[i] == kMovePass ? (1.0 / static_cast<double>(n - 1)) : (0.5 * ((priors[i] / total) + (priors_using_remainder[i] / total_using_remainder))));
   }
-  sortMoves();
+  normalizePriors(true);
 }
 
 void Node::logitsToPriors(pcg32& rng, const bool is_root) {

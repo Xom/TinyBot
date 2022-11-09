@@ -26,8 +26,8 @@ npy_output_policy = npy_output_policy[perm]
 npy_output_value = npy_output_value[perm]
 npy_output_land = npy_output_land[perm]
 
-with open('shuffle/tb08_' + sys.argv[1] + '.npz', 'wb') as f:
+with open('shuffle/tb9_' + sys.argv[1] + '.npz', 'wb') as f:
     np.savez(f, inputLocalNCHW=npy_input_local, inputGlobalNC=npy_input_global, outputPolicyNCHW=npy_output_policy, outputValueNC=npy_output_value, outputOwnershipNCHW=npy_output_land)
 
-with open('shuffle/tb08_' + sys.argv[1] + '.json', 'w') as f:
+with open('shuffle/tb9_' + sys.argv[1] + '.json', 'w') as f:
     f.write('{"num_rows":' + str(npy_rows) + '}')

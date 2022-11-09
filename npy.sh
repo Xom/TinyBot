@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for i in {0..96}
+for i in {0..104}
 do
     if [ $i -eq 0 ]; then
         head -n 2000 $1 | ./cmake-build-debug/tinybot

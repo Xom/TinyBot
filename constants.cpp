@@ -10,7 +10,7 @@ void searchExperiment(const int thread_id, int* search_thresholds, double* coefs
 //  coefs_explore[kPhase2a] = 2.0 * thread_id + 12.0;
 //  coefs_explore[kPhase0b] = 2.0 * thread_id + 12.0;
 //  coefs_explore[kPhase1b] = 2.0 * thread_id + 12.0;
-    coefs_explore[kPhase2b] = 16.0 + thread_id;
+//    coefs_explore[kPhase2b] = 16.0 + thread_id;
 //  switch (thread_id) {
 ////    case 1:
 ////      coefs_explore[kPhase0a] = 22.0;
