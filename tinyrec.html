@@ -1,0 +1,67 @@
+<html>
+<script type="text/javascript">
+
+var i = 0;
+
+function getName(myName)
+{
+    i++;
+    var prevLog = document.getElementById("prevlog");
+    prevLog.value += myName;
+    if (i % 4 === 0) {
+      prevLog.value += ' ';
+    }
+    prevLog.scrollTop = prevLog.scrollHeight;
+}
+
+</script>
+</head>
+<body style="background-color:grey;text-align:right">
+<textarea cols="70" rows="2" id="prevlog"></textarea>
+<p>
+<p>
+<button type="button" onClick="getName('f')">forest</button>
+<button type="button" onClick="getName('h')">house</button>
+<button type="button" onClick="getName('s')">sand</button>
+<button type="button" onClick="getName('w')">wave</button>
+<p>
+<button type="button" onClick="getName('M')">Mtn.</button>
+<button type="button" onClick="getName('C')">Church</button>
+<button type="button" onClick="getName('B')">Boat</button>
+<p>
+<p>
+<button type="button" onClick="getName('9')">9</button><br/>
+<button type="button" onClick="getName('8')">8</button><br/>
+<button type="button" onClick="getName('7')">7</button><br/>
+<button type="button" onClick="getName('6')">6</button><br/>
+<button type="button" onClick="getName('5')">5</button><br/>
+<button type="button" onClick="getName('4')">4</button><br/>
+<button type="button" onClick="getName('3')">3</button><br/>
+<button type="button" onClick="getName('2')">2</button><br/>
+<button type="button" onClick="getName('1')">1</button>
+<p>
+<p>
+<button type="button" onClick="getName('a')">a</button>
+<button type="button" onClick="getName('b')">b</button>
+<button type="button" onClick="getName('c')">c</button>
+<button type="button" onClick="getName('d')">d</button>
+<button type="button" onClick="getName('e')">e</button>
+<button type="button" onClick="getName('f')">f</button>
+<button type="button" onClick="getName('g')">g</button>
+<button type="button" onClick="getName('h')">h</button>
+<button type="button" onClick="getName('i')">i</button>
+<p>
+<p>
+<button type="button" onClick="getName('Q')">Q</button>
+<button type="button" onClick="getName('W')">W</button>
+<button type="button" onClick="getName('E')">E</button>
+<p>
+<button type="button" onClick="getName('A')">A</button>
+<button type="button" onClick="getName('S')">S</button>
+<button type="button" onClick="getName('D')">D</button>
+<p>
+<button type="button" onClick="getName('Z')">Z</button>
+<button type="button" onClick="getName('X')">X</button>
+<button type="button" onClick="getName('C')">C</button>
+</body>
+</html>
