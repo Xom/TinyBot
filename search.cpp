@@ -89,20 +89,20 @@ void Node::landBasedPriors(pcg32& rng, const int offset_land, const float* outpu
 }
 
 void Node::logitsToPriors(pcg32& rng, const bool is_root) {
-  if (is_root) {
-    const double temperature = board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
-                                                                                                    : 1.1;
-    for (double& d : priors) {
-      d = exp(d / temperature);
-    }
-    normalizePriors(false);
-    noisifyPriors(rng, false);
-  } else {
+//  if (is_root) {
+//    const double temperature = board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
+//                                                                                                    : 1.1;
+//    for (double& d : priors) {
+//      d = exp(d / temperature);
+//    }
+//    normalizePriors(false);
+//    noisifyPriors(rng, false);
+//  } else {
     for (double& d : priors) {
       d = exp(d);
     }
     normalizePriors(true);
-  }
+//  }
 
   // randomize ties
   int streak_begin = 0;
@@ -131,59 +131,59 @@ void Node::normalizePriors(const bool do_sort) {
   }
 }
 
-void Node::noisifyPriors(pcg32& rng, const bool do_temperature) {
-  const auto n = moves.size();
-  const double n_double = static_cast<double>(n);
-  const double uniform_p = 1.0 / n_double;
-
-  if (do_temperature) {
-    const double e_t = 1 / (board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
-                                                                                                 : 1.1);
-    for (double& d : priors) {
-      d = pow(d, e_t);
-    }
-    normalizePriors(false);
-  }
-
-  std::vector<double> alpha;
-  // We're going to generate a gamma draw on each move with alphas that sum up to kNoiseTotal.
-  // Half of the alpha weight are uniform.
-  // The other half are shaped based on the log of the existing policy.
-  double mean_log_p = 0.0;
-  for (double& p : priors) {
-    const double log_p = log(std::min(0.01, p + 1e-20));  // cap priors at 0.01 so we can distinguish 0.01-ish priors from 0.00-ish priors
-    alpha.push_back(log_p);
-    mean_log_p += log_p;
-  }
-  mean_log_p /= n_double;
-  double alpha_sum = 0.0;
-  for (double& a : alpha) {
-    if (a > mean_log_p) {
-      a -= mean_log_p;
-      alpha_sum += a;
-    } else {
-      a = 0.0;
-    }
-  }
-  if (alpha_sum <= 0.0) {
-    const double d = uniform_p * kNoiseTotal;
-    for (double& a : alpha) {
-      a = d;
-    }
-  } else {
-    const double d = 0.5 * kNoiseTotal;
-    for (double& a : alpha) {
-      a = d * (a / alpha_sum + uniform_p);
-    }
-  }
-  // alpha_dist now contains the proportions with which we would like to split the alpha
-  dirichlet_distribution<pcg32> dist(alpha);
-  alpha = dist(rng);
-  for (int i = 0; i < n; ++i) {
-    priors[i] = priors[i] * 0.75 + alpha[i] * 0.25;
-  }
-  sortMoves();
-}
+//void Node::noisifyPriors(pcg32& rng, const bool do_temperature) {
+//  const auto n = moves.size();
+//  const double n_double = static_cast<double>(n);
+//  const double uniform_p = 1.0 / n_double;
+//
+//  if (do_temperature) {
+//    const double e_t = 1 / (board.drawings_completed == 0 ? 1.25 : board.drawings_completed == 1 ? 1.15
+//                                                                                                 : 1.1);
+//    for (double& d : priors) {
+//      d = pow(d, e_t);
+//    }
+//    normalizePriors(false);
+//  }
+//
+//  std::vector<double> alpha;
+//  // We're going to generate a gamma draw on each move with alphas that sum up to kNoiseTotal.
+//  // Half of the alpha weight are uniform.
+//  // The other half are shaped based on the log of the existing policy.
+//  double mean_log_p = 0.0;
+//  for (double& p : priors) {
+//    const double log_p = log(std::min(0.01, p + 1e-20));  // cap priors at 0.01 so we can distinguish 0.01-ish priors from 0.00-ish priors
+//    alpha.push_back(log_p);
+//    mean_log_p += log_p;
+//  }
+//  mean_log_p /= n_double;
+//  double alpha_sum = 0.0;
+//  for (double& a : alpha) {
+//    if (a > mean_log_p) {
+//      a -= mean_log_p;
+//      alpha_sum += a;
+//    } else {
+//      a = 0.0;
+//    }
+//  }
+//  if (alpha_sum <= 0.0) {
+//    const double d = uniform_p * kNoiseTotal;
+//    for (double& a : alpha) {
+//      a = d;
+//    }
+//  } else {
+//    const double d = 0.5 * kNoiseTotal;
+//    for (double& a : alpha) {
+//      a = d * (a / alpha_sum + uniform_p);
+//    }
+//  }
+//  // alpha_dist now contains the proportions with which we would like to split the alpha
+//  dirichlet_distribution<pcg32> dist(alpha);
+//  alpha = dist(rng);
+//  for (int i = 0; i < n; ++i) {
+//    priors[i] = priors[i] * 0.75 + alpha[i] * 0.25;
+//  }
+//  sortMoves();
+//}
 
 void Node::sortMoves() {
   const int begin_index = children.size();
@@ -300,9 +300,9 @@ void Game::doPlace(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explor
   record.push_back(kZoneChars[z % 9 + 9]);
   record.push_back(kZoneChars[z / 9]);
   record.push_back(' ');
-  if (root->board.is_player_turn && root->moves.size() > 1 && !root->board.is_trivial) {
-    root->noisifyPriors(rng, true);
-  }
+//  if (root->board.is_player_turn && root->moves.size() > 1 && !root->board.is_trivial) {
+//    root->noisifyPriors(rng, true);
+//  }
   sim_stream += root->visits;
 }
 
@@ -329,9 +329,9 @@ void Game::doDraw(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore
   } else {
     record.push_back(kZoneChars[root->move % 9 + 9]);
     record.push_back(kZoneChars[root->move / 9]);
-    if (root->moves.size() > 1) {
-      root->noisifyPriors(rng, true);
-    }
+//    if (root->moves.size() > 1) {
+//      root->noisifyPriors(rng, true);
+//    }
   }
   sim_stream += root->visits;
 }

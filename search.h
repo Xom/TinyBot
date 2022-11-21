@@ -33,7 +33,7 @@ struct Node {
   void landBasedPriors(pcg32& rng, int offset_land, const float* output_land);
   void logitsToPriors(pcg32& rng, bool is_root);
   void normalizePriors(bool do_sort);
-  void noisifyPriors(pcg32& rng, bool do_temperature);
+//  void noisifyPriors(pcg32& rng, bool do_temperature);
   void sortMoves();
   int selectChild(bool apply_coef_unvisited, double* coefs_explore);
   int getSearchThreshold(const int* search_thresholds) const;
