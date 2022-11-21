@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-for i in {50..50..3}
+for i in {0..96..4}
 do
-    let "end = $i + 3"
-    python shuffle_0.py 200 $i $end
+    let "end = $i + 4"
+    python shuffle_0.py 400 $i $end
     echo $i $end
 done
