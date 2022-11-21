@@ -72,8 +72,11 @@ class Game {
   std::shared_ptr<Node> root;
   std::shared_ptr<Node> sim;
   std::string record;
+  std::string comment;
   std::vector<std::shared_ptr<Node>> stack;
   InferenceTicket ticket{-1};
+  int game_id{};
+  int local_counter{0};
   int random_moves{0};
   unsigned long seed{};
   unsigned long sim_stream{0};

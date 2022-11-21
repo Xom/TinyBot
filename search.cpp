@@ -388,7 +388,9 @@ void Game::reportVisits(const int selected_move, double* coefs_explore) {
 
 void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
   reset();
-  random_moves = std::min(rng(8), rng(8));
+  comment = intToString(thread_id) + "_" + intToString(game_id) + "_" + intToString(local_counter);
+  ++local_counter;
+//  random_moves = std::min(rng(8), rng(8));
 //  random_moves = thread_id;
   for (int i = 0; i < random_moves; ++i) {
     doOffer(rng, deck);
@@ -408,7 +410,8 @@ void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& 
   }
   record += intToString(stuck ? root->board.score[0] + root->board.score[8] - kStuckPenaltyInt : root->board.score[8]);
   record.push_back(' ');
-  record += intToString(random_moves);
+  record.push_back('#');
+  record += comment;
   record += "\n";
   out_file << record << std::flush;
   start(thread_id, rng, deck);
@@ -503,11 +506,14 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
   pcg32 rng(original_seed, 0);
   PcgDeck deck(pcg32(original_seed, 1));  // TODO test rng ?= pcg32(rng())
   Game games[kConcurrentGames / search_threads];
+  int game_counter = 0;
   for (Game& game : games) {
     ++original_seed;
+    game.game_id = game_counter;
     game.seed = original_seed;
     game.start(thread_id, rng, deck);
     game.ticket = inference_manager->request(game.root->board.input_local, game.root->board.input_global);
+    ++game_counter;
   }
 
   //  int debug_counter = 0;
