@@ -20,9 +20,9 @@ static constexpr double kNoiseTotal = 10.83;
 static constexpr double kCoefForcedPlayout = 1.41421356;  // sqrt(2)
 static constexpr int kRowsPerTurn = 8;
 
-static constexpr int kSearchThresholds[12]{128, 128, 0, 0,
-                                           128, 128, 0, 0,
-                                           128, 128, 0, 0};  // phases c and d use constants for b
+static constexpr int kSearchThresholds[12]{4096, 4096, 0, 0,
+                                           4096, 4096, 0, 0,
+                                           4096, 256, 0, 0};  // phases c and d use constants for b
 static constexpr double kCoefsExplore[12]{16.0, 16.0, 0, 0,
                                           16.0, 16.0, 0, 0,
                                           16.0, 16.0, 0, 0};  // proportional to game score stdev / branching factor
