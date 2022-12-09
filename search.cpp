@@ -266,8 +266,8 @@ void Game::reset() {
 }
 
 void Game::doOffer(pcg32& rng, IDeck& deck, const int thread_id) {
-  if (thread_id == 0 && local_counter == 1 && game_id < kNumFixedShuffles) {
-    root->board.doOffer(*kFixedShuffles[game_id], &root->moves);
+  if (thread_id == 0 && game_id == 0) {
+    root->board.doOffer(*kFixedShuffles[local_counter - 1], &root->moves);
   } else {
     root->board.doOffer(deck, &root->moves);
   }
@@ -405,19 +405,19 @@ void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
 
 void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, const bool stuck) {
   sim_stream += root->visits;
-  root->board.calculateScore();
-  record += intToString(stuck ? kStuckPenaltyInt : root->board.score[0]);
-  record.push_back(' ');
-  for (int i = kForest; i <= kBoat; ++i) {
-    record += intToString(root->board.score[i]);
-    record.push_back(' ');
-  }
-  record += intToString(stuck ? root->board.score[0] + root->board.score[8] - kStuckPenaltyInt : root->board.score[8]);
-  record.push_back(' ');
-  record.push_back('#');
-  record += comment;
-  record += "\n";
-  out_file << record << std::flush;
+//  root->board.calculateScore();
+//  record += intToString(stuck ? kStuckPenaltyInt : root->board.score[0]);
+//  record.push_back(' ');
+//  for (int i = kForest; i <= kBoat; ++i) {
+//    record += intToString(root->board.score[i]);
+//    record.push_back(' ');
+//  }
+//  record += intToString(stuck ? root->board.score[0] + root->board.score[8] - kStuckPenaltyInt : root->board.score[8]);
+//  record.push_back(' ');
+//  record.push_back('#');
+//  record += comment;
+//  record += "\n";
+//  out_file << record << std::flush;
   start(thread_id, rng, deck);
 }
 
@@ -531,6 +531,8 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
       const int offset = game.ticket.cursor * kTensorLengths[kOutputPolicy];
       const float* output_policy = game.ticket.future.get()->output_policy;
 
+      bool should_restart_because_sim_done = false;
+
       if (game.sim) {
         for (const int move : game.sim->moves) {
           game.sim->priors.push_back(output_policy[offset + move]);
@@ -553,12 +555,28 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 if (game.sim->priors.empty()) {
                   if (game.sim->moves.size() == 1) {
                     if (game.sim->children.empty()) {
+                      if (thread_id == 0 && game.game_id == 0) {
+                        if (game.sim->moves[0] == kMovePass) {
+                          game.record.push_back(' ');
+                        } else {
+                          game.record.push_back(kZoneChars[game.sim->moves[0] % 9 + 9]);
+                          game.record.push_back(kZoneChars[game.sim->moves[0] / 9]);
+                        }
+                      }
                       game.sim->board.doDraw(game.sim->moves[0]);
                       game.sim->moves.clear();
                       game.sim->priors.clear();
                       game.sim->populateDraw();
                     } else {
                       game.sim = game.sim->children[0];
+                      if (thread_id == 0 && game.game_id == 0) {
+                        if (game.sim->move == kMovePass) {
+                          game.record.push_back(' ');
+                        } else {
+                          game.record.push_back(kZoneChars[game.sim->move % 9 + 9]);
+                          game.record.push_back(kZoneChars[game.sim->move / 9]);
+                        }
+                      }
                     }
                     continue;
                   }
@@ -588,6 +606,14 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
                 }
 
                 game.sim = child;
+                if (thread_id == 0 && game.game_id == 0) {
+                  if (game.sim->move == kMovePass) {
+                    game.record.push_back(' ');
+                  } else {
+                    game.record.push_back(kZoneChars[game.sim->move % 9 + 9]);
+                    game.record.push_back(kZoneChars[game.sim->move / 9]);
+                  }
+                }
                 continue;
               }  // end if (stack.empty())
 
@@ -660,8 +686,31 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               ++node->visits;
             }
             game.root->sum += ev;
+            if (thread_id == 0 && game.game_id == 0) {
+              game.sim->board.doDraw(trivial_endgames[0]);
+              game.sim->board.doDraw(kMovePass);
+              game.record.push_back(kZoneChars[trivial_endgames[0] % 9 + 9]);
+              game.record.push_back(kZoneChars[trivial_endgames[0] / 9]);
+              game.record.push_back(' ');
+              game.sim->board.calculateScore();
+            }
           }
           ++game.root->visits;
+          if (thread_id == 0 && game.game_id == 0) {
+            game.record += intToString(game.sim->board.score[0]);
+            game.record.push_back(' ');
+            for (int i = kForest; i <= kBoat; ++i) {
+              game.record += intToString(game.sim->board.score[i]);
+              game.record.push_back(' ');
+            }
+            game.record += intToString(game.sim->board.score[8]);
+            game.record.push_back(' ');
+            game.record.push_back('#');
+            game.record += intToString(game.local_counter);
+            game.record += "\n";
+            out_file << game.record << std::flush;
+            should_restart_because_sim_done = true;
+          }
           game.sim.reset();
           game.stack.clear();
 
@@ -699,11 +748,25 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           //          }
           game.sim->priors.clear();
           if (drawing) {
+            if (thread_id == 0 && game.game_id == 0) {
+              if (game.sim->moves[random_i] == kMovePass) {
+                game.record.push_back(' ');
+              } else {
+                game.record.push_back(kZoneChars[game.sim->moves[random_i] % 9 + 9]);
+                game.record.push_back(kZoneChars[game.sim->moves[random_i] / 9]);
+              }
+            }
             game.sim->board.doDraw(game.sim->moves[random_i]);
             if (game.sim->moves[random_i] == kMovePass) {
               game.sim_rng_draw = pcg32(game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + 651 + game.sim->board.drawings_completed);
             }
           } else {
+            if (thread_id == 0 && game.game_id == 0) {
+              game.record.push_back(kTileChars[game.sim->moves[random_i] / 81]);
+              game.record.push_back(kZoneChars[(game.sim->moves[random_i] % 81) % 9 + 9]);
+              game.record.push_back(kZoneChars[(game.sim->moves[random_i] % 81) / 9]);
+              game.record.push_back(' ');
+            }
             game.sim->board.doPlace(game.sim->moves[random_i] % 81, game.sim->moves[random_i] / 81);
           }
 
@@ -717,6 +780,21 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               }
               game.root->sum += ev;
               ++game.root->visits;
+              if (thread_id == 0 && game.game_id == 0) {
+                game.record += intToString(game.sim->board.score[0]);
+                game.record.push_back(' ');
+                for (int i = kForest; i <= kBoat; ++i) {
+                  game.record += intToString(game.sim->board.score[i]);
+                  game.record.push_back(' ');
+                }
+                game.record += intToString(game.sim->board.score[8]);
+                game.record.push_back(' ');
+                game.record.push_back('#');
+                game.record += intToString(game.local_counter);
+                game.record += "\n";
+                out_file << game.record << std::flush;
+                should_restart_because_sim_done = true;
+              }
               game.sim.reset();
               game.stack.clear();
               break;
@@ -725,14 +803,37 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             if (game.sim->board.is_player_turn) {
               game.sim->populateDraw();
               if (game.sim->moves.size() == 1) {
+                if (thread_id == 0 && game.game_id == 0) {
+                  if (game.sim->moves[0] == kMovePass) {
+                    game.record.push_back(' ');
+                  } else {
+                    game.record.push_back(kZoneChars[game.sim->moves[0] % 9 + 9]);
+                    game.record.push_back(kZoneChars[game.sim->moves[0] / 9]);
+                  }
+                }
                 game.sim->board.doDraw(game.sim->moves[0]);  // then repeat
                 if (game.sim->moves[0] == kMovePass) {
                   game.sim_rng_draw = pcg32(game.seed, (game.sim_stream + game.stack.front()->visits) * 1024 + 651 + game.sim->board.drawings_completed);
                 }
               }
             } else {
-              game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+              if (thread_id == 0 && game.game_id == 0) {
+                game.sim->board.doOffer(*kFixedShuffles[game.local_counter - 1], &game.sim->moves);
+                game.record.push_back(kTileChars[game.sim->board.offer_tile[0]]);
+                game.record.push_back(kZoneChars[game.sim->board.offer_zone[0]]);
+                game.record.push_back(kTileChars[game.sim->board.offer_tile[1]]);
+                game.record.push_back(kZoneChars[game.sim->board.offer_zone[1]]);
+                game.record.push_back(' ');
+              } else {
+                game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+              }
               if (game.sim->moves.size() == 1) {
+                if (thread_id == 0 && game.game_id == 0) {
+                  game.record.push_back(kTileChars[game.sim->moves[0] / 81]);
+                  game.record.push_back(kZoneChars[(game.sim->moves[0] % 81) % 9 + 9]);
+                  game.record.push_back(kZoneChars[(game.sim->moves[0] % 81) / 9]);
+                  game.record.push_back(' ');
+                }
                 game.sim->board.doPlace(game.sim->moves[0] % 81, game.sim->moves[0] / 81);  // then repeat
               }
             }
@@ -751,6 +852,21 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             }
             game.root->sum += ev;
             ++game.root->visits;
+            if (thread_id == 0 && game.game_id == 0) {
+              game.record += intToString(kStuckPenaltyInt);
+              game.record.push_back(' ');
+              for (int i = kForest; i <= kBoat; ++i) {
+                game.record += intToString(game.sim->board.score[i]);
+                game.record.push_back(' ');
+              }
+              game.record += intToString(game.sim->board.score[0] + game.sim->board.score[8] - kStuckPenaltyInt);
+              game.record.push_back(' ');
+              game.record.push_back('#');
+              game.record += intToString(game.local_counter);
+              game.record += "\n";
+              out_file << game.record << std::flush;
+              should_restart_because_sim_done = true;
+            }
             game.sim.reset();
             game.stack.clear();
           }
@@ -760,12 +876,22 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
           game.root->priors.push_back(output_policy[offset + move]);
         }
         game.root->logitsToPriors(rng, true);
+        if (thread_id == 0 && game.game_id == 0) {
+          game.record.push_back(kTileChars[game.root->moves[0] / 81]);
+          game.record.push_back(kZoneChars[(game.root->moves[0] % 81) % 9 + 9]);
+          game.record.push_back(kZoneChars[(game.root->moves[0] % 81) / 9]);
+          game.record.push_back(' ');
+        }
       } else {
         std::shared_ptr<Node> leaf = game.stack.back();
         for (const int move : leaf->moves) {
           leaf->priors.push_back(output_policy[offset + move]);
         }
         leaf->logitsToPriors(rng, false);
+      }
+
+      if (should_restart_because_sim_done) {
+        game.restart(thread_id, rng, deck, out_file, false); // I think all the code that uses `stuck` is currently commented out
       }
 
       // here begins the state machine from hell
@@ -960,12 +1086,35 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
         game.sim_rng_place = pcg32(game.seed, sim_stream_offset + 650);
         game.sim_rng_draw = pcg32(game.seed, sim_stream_offset + 651);
         game.sim = std::make_shared<Node>(leaf->board);
-        game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+        if (thread_id == 0 && game.game_id == 0) {
+          game.sim->board.doOffer(*kFixedShuffles[game.local_counter - 1], &game.sim->moves);
+          game.record.push_back(kTileChars[game.sim->board.offer_tile[0]]);
+          game.record.push_back(kZoneChars[game.sim->board.offer_zone[0]]);
+          game.record.push_back(kTileChars[game.sim->board.offer_tile[1]]);
+          game.record.push_back(kZoneChars[game.sim->board.offer_zone[1]]);
+          game.record.push_back(' ');
+        } else {
+          game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+        }
 
         while (game.sim->moves.size() == 1) {
           if (game.sim->board.placements_until_draw == 0) {
+            if (thread_id == 0 && game.game_id == 0) {
+              if (game.sim->moves[0] == kMovePass) {
+                game.record.push_back(' ');
+              } else {
+                game.record.push_back(kZoneChars[game.sim->moves[0] % 9 + 9]);
+                game.record.push_back(kZoneChars[game.sim->moves[0] / 9]);
+              }
+            }
             game.sim->board.doDraw(game.sim->moves[0]);
           } else {
+            if (thread_id == 0 && game.game_id == 0) {
+              game.record.push_back(kTileChars[game.sim->moves[0] / 81]);
+              game.record.push_back(kZoneChars[(game.sim->moves[0] % 81) % 9 + 9]);
+              game.record.push_back(kZoneChars[(game.sim->moves[0] % 81) / 9]);
+              game.record.push_back(' ');
+            }
             game.sim->board.doPlace(game.sim->moves[0] % 81, game.sim->moves[0] / 81);
           }
           game.sim->moves.clear();
@@ -975,7 +1124,16 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
             if (game.sim->board.drawings_completed == 3) {
               break;
             }
-            game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+            if (thread_id == 0 && game.game_id == 0) {
+              game.sim->board.doOffer(*kFixedShuffles[game.local_counter - 1], &game.sim->moves);
+              game.record.push_back(kTileChars[game.sim->board.offer_tile[0]]);
+              game.record.push_back(kZoneChars[game.sim->board.offer_zone[0]]);
+              game.record.push_back(kTileChars[game.sim->board.offer_tile[1]]);
+              game.record.push_back(kZoneChars[game.sim->board.offer_zone[1]]);
+              game.record.push_back(' ');
+            } else {
+              game.sim->board.doOffer(game.sim_deck, &game.sim->moves);
+            }
           }
         }
 
@@ -991,6 +1149,22 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
         }
         game.root->sum += ev;
         ++game.root->visits;
+        if (thread_id == 0 && game.game_id == 0) {
+          game.record += intToString(game.sim->board.drawings_completed == 3 ? game.sim->board.score[0] : kStuckPenaltyInt);
+          game.record.push_back(' ');
+          for (int i = kForest; i <= kBoat; ++i) {
+            game.record += intToString(game.sim->board.score[i]);
+            game.record.push_back(' ');
+          }
+          game.record += intToString(game.sim->board.score[8] + (game.sim->board.drawings_completed == 3 ? 0 : (game.sim->board.score[0] - kStuckPenaltyInt)));
+          game.record.push_back(' ');
+          game.record.push_back('#');
+          game.record += intToString(game.local_counter);
+          game.record += "\n";
+          out_file << game.record << std::flush;
+          game.restart(thread_id, rng, deck, out_file, game.sim->board.drawings_completed != 3); // FWIW I think all the code that uses `stuck` is currently commented out
+          break;
+        }
         game.stack.clear();
         game.sim.reset();
       }
