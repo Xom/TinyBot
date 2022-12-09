@@ -265,8 +265,12 @@ void Game::reset() {
   root = std::make_shared<Node>();
 }
 
-void Game::doOffer(pcg32& rng, IDeck& deck) {
-  root->board.doOffer(deck, &root->moves);
+void Game::doOffer(pcg32& rng, IDeck& deck, const int thread_id) {
+  if (thread_id == 0 && local_counter == 1 && game_id < kNumFixedShuffles) {
+    root->board.doOffer(*kFixedShuffles[game_id], &root->moves);
+  } else {
+    root->board.doOffer(deck, &root->moves);
+  }
   record.push_back(kTileChars[root->board.offer_tile[0]]);
   record.push_back(kZoneChars[root->board.offer_zone[0]]);
   record.push_back(kTileChars[root->board.offer_tile[1]]);
@@ -393,10 +397,10 @@ void Game::start(const int thread_id, pcg32& rng, IDeck& deck) {
 //  random_moves = std::min(rng(8), rng(8));
 //  random_moves = thread_id;
   for (int i = 0; i < random_moves; ++i) {
-    doOffer(rng, deck);
+    doOffer(rng, deck, thread_id);
     doPlace(root->moves[rng(root->moves.size())]);
   }
-  doOffer(rng, deck);
+  doOffer(rng, deck, thread_id);
 }
 
 void Game::restart(const int thread_id, pcg32& rng, IDeck& deck, std::ofstream& out_file, const bool stuck) {
@@ -772,7 +776,7 @@ std::string SearchManager::threadInfo(const std::string& filename, const int thr
               game.restart(thread_id, rng, deck, out_file, false);
               break;
             }
-            game.doOffer(rng, deck);
+            game.doOffer(rng, deck, thread_id);
             if (game.root->moves.size() > 1) {
               break;
             }

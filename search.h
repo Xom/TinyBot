@@ -57,7 +57,7 @@ class Game {
   Game& operator=(const Game&) = delete;
 
   void reset();
-  void doOffer(pcg32& rng, IDeck& deck);
+  void doOffer(pcg32& rng, IDeck& deck, const int thread_id);
   void doPlace(int z, int t);
   void doPlace(int move);
   void doPlace(pcg32& rng, std::shared_ptr<Node> child, double* coefs_explore);  // must use this version if child exists

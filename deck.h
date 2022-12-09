@@ -52,6 +52,9 @@ class FixedDeck : public IDeck {
   std::queue<Offer> offers;
 };
 
+static constexpr int kNumFixedShuffles = 64;
+extern FixedDeck* kFixedShuffles[kNumFixedShuffles];
+
 }  // namespace tinybot
 
 #endif  // TINYBOT_DECK_H
