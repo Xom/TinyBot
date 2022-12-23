@@ -36,7 +36,8 @@ TinyBot uses KataGo's neural net declaration code, from the new PyTorch branch, 
 
 As alluded to above, it's hard to explore the possibility space of possible shorelines, and I hardly even tried. One might speculate that TinyBot did no more than find the most obvious strategy, of drawing two major islands in a diagonal arrangement, and refined it to a local maximum. In the case of Tiny Islands, it seems likely that the most obvious strategy is indeed the best, but TinyBot may not be a conclusive test of that proposition.
 
-![lake at b8](lake.png)
+![lake at b8](lake.png)  
+*A lake at b8, containing a sand tile. (Not an early lake, as it so happened in this case.)*
 
 Although it's hard to program TinyBot to try all possible strategies, it's not hard to get it to try something specific. At one point, after TinyBot had settled into the diagonal strategy, I noticed that it would be better off drawing a lake for the second shoreline drawing whenever it had already placed a water tile that would eventually need to be in a lake; it was a blind spot that the net had developed, always predicting major islands for the first two shoreline drawings, never a lake, which guided the search not to consider a lake. I then hardcoded it to consider the lake, which corrected the blind spot. (Afterward, I decided that, in these cases, it's always correct to draw a lake and I hardcoded it to only consider lakes, to conserve computation.)
 
