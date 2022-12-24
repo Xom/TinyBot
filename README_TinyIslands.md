@@ -35,3 +35,15 @@ The final score is the sum of the scores of each tile on the board. In the follo
 [A strategy guide.](https://imgur.com/a/yMPK279)
 
 TinyBot's objective is to maximize its mean expected score, with no foreknowledge of the shuffle.
+
+## Addendum: the pattern in the deck
+
+Contrary to the above, there is actually only one 54-card deck, with tiles on one side and zones on the reverse side. For each placement turn, the previous turn's tiles are flipped over to reveal the zones on the reverse side. Each game, the tiles on the other side of the first two zones and the zones on the other side of the last two tiles are unseen and unused.
+
+For example, the three Boats in the deck have the topmost row, the leftmost column, and the bottom left nonant on their backs. This results in lesser Boat values than the theoretical two-deck scheme previously described, because it results in 4% fewer opportunities to play Boats in corners.
+
+When I started developing TinyBot, I read the developer's comment describing this, but when I scrutinized the digital implementation, I mistakenly determined it not to be the case. I didn't discover my mistake until after TinyBot was done training. So TinyBoat was trained using the "naive" two-deck scheme, and is not aware of the actual deck pattern. I could train TinyBot further to be aware, but I wish to move on from the project, so I won't.
+
+For the final test run, I generated 4032 "naive" shuffles not using the actual deck pattern, and I also had 62 shuffles transcribed from the actual game, containing the actual deck pattern. TinyBot had a mean score of 72 on the naive shuffles, and 70.7 on the transcribed shuffles. Thanks to the large sample of naive shuffles, this difference is statistically significant. How much of it is due to the effect on Boats I described, versus how much of it is due to other (similar) effects, I don't know.
+
+For what it's worth, my speculation is that actually being aware of the pattern wouldn't be useful until the last couple of turns, because knowing the next zones doesn't seem that useful without knowing the next tiles. On the last couple of turns, though, you'd have a better idea of which tiles are on the other side of the first two zones and won't be used, giving you a good guess at the last few tiles before you see them.
